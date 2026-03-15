@@ -174,6 +174,11 @@
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
+                    <button class="nav-link w-100 text-start" id="pipeline-tab" data-bs-toggle="tab" data-bs-target="#pipeline" type="button" role="tab">
+                        <i class="bi bi-kanban me-2"></i> Pipeline
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
                     <button class="nav-link w-100 text-start" id="profiles-tab" data-bs-toggle="tab" data-bs-target="#profiles" type="button" role="tab">
                         <i class="bi bi-folder2-open me-2"></i> Perfiles
                     </button>
@@ -206,14 +211,32 @@
             </ul>
 
             <div class="mt-auto pt-3 border-top border-secondary">
+                <div class="mb-3">
+                    <label class="small text-secondary mb-1">Simular Rol:</label>
+                    <select class="form-select form-select-sm bg-dark text-white border-secondary" data-action="switch-role">
+                        <option value="Admin">Administrador</option>
+                        <option value="Recruiter">Reclutador</option>
+                        <option value="Interviewer">Entrevistador</option>
+                    </select>
+                </div>
+                <div class="d-grid gap-2 mb-3">
+                    <button class="btn btn-outline-info btn-sm" data-action="toggle-portal">
+                        <i class="bi bi-box-arrow-up-right me-2"></i> Portal Candidato
+                    </button>
+                </div>
                 <div class="d-flex align-items-center justify-content-between">
-                    <span class="small text-secondary">v2.0 Enterprise</span>
+                    <span class="small text-secondary">v4.0 ATS Enterprise</span>
                 </div>
             </div>
         </div>
     </aside>
 
     <main id="main-content">
+        <div id="candidate-portal" class="d-none">
+            <!-- Portal content -->
+        </div>
+
+        <div id="recruiter-app">
         <header class="d-flex justify-content-between align-items-center mb-5">
             <h2 id="page-title" class="fw-bold">Dashboard</h2>
             <div id="header-actions" class="d-flex align-items-center">
@@ -226,6 +249,11 @@
             <!-- Módulo 0: Dashboard -->
             <div class="tab-pane fade show active" id="dashboard" role="tabpanel">
                 <!-- Dashboard content -->
+            </div>
+
+            <!-- Módulo 0.5: Pipeline Kanban -->
+            <div class="tab-pane fade" id="pipeline" role="tabpanel">
+                <!-- Kanban content -->
             </div>
 
             <!-- Módulo 1: Gestión de Perfiles -->
@@ -258,6 +286,7 @@
                 <!-- Settings content -->
             </div>
         </div>
+        </div> <!-- End recruiter-app -->
     </main>
 
     <div class="modal fade" id="formModal" tabindex="-1" aria-labelledby="formModalLabel" aria-hidden="true">
@@ -321,6 +350,7 @@
                     vacancies: {},
                     settings: {
                         darkMode: false,
+                        role: 'Admin',
                         thresholds: {
                             recommended: 80,
                             reserved: 60
@@ -414,6 +444,11 @@
                 return this.data.settings.darkMode;
             }
 
+            setRole(role) {
+                this.data.settings.role = role;
+                this.saveData();
+            }
+
             addProfile(name) {
                 const id = Date.now().toString();
                 this.data.profiles[id] = { id, name, skills: [] };
@@ -432,6 +467,13 @@
             updateProfileName(id, name) {
                 if (this.data.profiles[id]) {
                     this.data.profiles[id].name = name;
+                    this.saveData();
+                }
+            }
+
+            updateCandidateStatus(id, status) {
+                if (this.data.candidates[id]) {
+                    this.data.candidates[id].status = status;
                     this.saveData();
                 }
             }
@@ -482,9 +524,18 @@
 
             createEvaluation(evaluation) {
                 const id = Date.now().toString();
-                this.data.evaluations[id] = { ...evaluation, id };
+                this.data.evaluations[id] = { ...evaluation, id, feedback: [] };
                 this.saveData();
                 return this.data.evaluations[id];
+            }
+
+            addEvaluationFeedback(evalId, reviewer, comment, rating) {
+                if (this.data.evaluations[evalId]) {
+                    this.data.evaluations[evalId].feedback.push({
+                        reviewer, comment, rating, date: new Date().toISOString()
+                    });
+                    this.saveData();
+                }
             }
 
             updateEvaluationScore(evalId, skillIndex, score) {
@@ -560,7 +611,32 @@
                 this.mainContent = document.getElementById('mainTabsContent');
                 this.pageTitle = document.getElementById('page-title');
                 this.statusChart = null;
+                this.funnelChart = null;
                 this.radarChart = null;
+            }
+
+            applyRBAC(role) {
+                const elements = {
+                    'settings-tab': ['Admin'],
+                    'profiles-tab': ['Admin', 'Recruiter'],
+                    'vacancies-tab': ['Admin', 'Recruiter'],
+                    'pipeline-tab': ['Admin', 'Recruiter', 'Interviewer'],
+                    'candidates-tab': ['Admin', 'Recruiter'],
+                    'evaluation-tab': ['Admin', 'Recruiter', 'Interviewer'],
+                    'analytics-tab': ['Admin', 'Recruiter']
+                };
+
+                Object.keys(elements).forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) {
+                        const parent = el.closest('.nav-item');
+                        if (elements[id].includes(role)) {
+                            parent.classList.remove('d-none');
+                        } else {
+                            parent.classList.add('d-none');
+                        }
+                    }
+                });
             }
 
             renderDashboard(data) {
@@ -580,33 +656,54 @@
                 container.innerHTML = `
                     <div class="row g-4 mb-4">
                         <div class="col-md-3">
-                            <div class="card p-3 text-center">
-                                <h6 class="text-secondary mb-2">Candidatos Totales</h6>
+                            <div class="card p-3 border-start border-4 border-primary">
+                                <h6 class="text-secondary mb-1">Candidatos Totales</h6>
                                 <h2 class="fw-bold mb-0">${stats.totalCandidates}</h2>
                             </div>
                         </div>
                         <div class="col-md-3">
-                            <div class="card p-3 text-center">
-                                <h6 class="text-secondary mb-2">Perfiles Activos</h6>
+                            <div class="card p-3 border-start border-4 border-info">
+                                <h6 class="text-secondary mb-1">Perfiles Activos</h6>
                                 <h2 class="fw-bold mb-0">${stats.activeProfiles}</h2>
                             </div>
                         </div>
                         <div class="col-md-3">
-                            <div class="card p-3 text-center">
-                                <h6 class="text-secondary mb-2">Entrevistas Realizadas</h6>
+                            <div class="card p-3 border-start border-4 border-success">
+                                <h6 class="text-secondary mb-1">Entrevistas</h6>
                                 <h2 class="fw-bold mb-0">${stats.evaluations}</h2>
                             </div>
                         </div>
                         <div class="col-md-3">
-                            <div class="card p-3 text-center">
-                                <h6 class="text-secondary mb-2">Puntuación Media</h6>
-                                <h2 class="fw-bold mb-0">${stats.avgScore.toFixed(2)}</h2>
+                            <div class="card p-3 border-start border-4 border-warning">
+                                <h6 class="text-secondary mb-1">Match Promedio</h6>
+                                <h2 class="fw-bold mb-0">${(stats.avgScore * 10).toFixed(0)}%</h2>
                             </div>
                         </div>
                     </div>
 
-                    <div class="row">
-                        <div class="col-md-7">
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-8">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title mb-4">Embudo de Reclutamiento (Conversion)</h5>
+                                    <div style="height: 300px;"><canvas id="funnelChart"></canvas></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card h-100">
+                                <div class="card-body text-center d-flex flex-column justify-content-center">
+                                    <h5 class="card-title mb-4">Tiempo Medio Contratación</h5>
+                                    <h1 class="display-1 fw-bold text-primary mb-0">18</h1>
+                                    <p class="text-secondary mt-0">días</p>
+                                    <small class="text-success"><i class="bi bi-arrow-down"></i> 12% vs mes anterior</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-4">
+                        <div class="col-md-6">
                             <div class="card h-100">
                                 <div class="card-body">
                                     <h5 class="card-title mb-4">Candidatos Recientes</h5>
@@ -627,11 +724,11 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-5">
+                        <div class="col-md-6">
                             <div class="card h-100">
                                 <div class="card-body">
-                                    <h5 class="card-title mb-4">Estado de Candidatos</h5>
-                                    <canvas id="statusChart"></canvas>
+                                    <h5 class="card-title mb-4">Distribución por Estado</h5>
+                                    <div style="height: 300px;"><canvas id="statusChart"></canvas></div>
                                 </div>
                             </div>
                         </div>
@@ -639,6 +736,41 @@
                 `;
 
                 this.renderStatusChart(data.candidates);
+                this.renderFunnelChart(data.candidates);
+            }
+
+            renderPipeline(candidates) {
+                const container = document.getElementById('pipeline');
+                const stages = ['Prospecto', 'Prefiltrado', 'Entrevistando', 'Evaluación Técnica', 'Oferta', 'Contratado'];
+
+                container.innerHTML = `
+                    <div class="kanban-board">
+                        ${stages.map(stage => `
+                            <div class="kanban-column" data-stage="${stage}" ondragover="event.preventDefault()" ondrop="window.appController.handleDrop(event, '${stage}')">
+                                <div class="kanban-header">
+                                    <span>${stage}</span>
+                                    <span class="badge bg-secondary rounded-pill">${Object.values(candidates).filter(c => (c.status || 'Prospecto') === stage).length}</span>
+                                </div>
+                                <div class="kanban-cards">
+                                    ${Object.values(candidates).filter(c => (c.status || 'Prospecto') === stage).map(c => `
+                                        <div class="kanban-card status-${(c.status || 'Prospecto').toLowerCase()}"
+                                             draggable="true" ondragstart="window.appController.handleDragStart(event, '${c.id}')">
+                                            <div class="d-flex align-items-center mb-2">
+                                                <img src="${c.photoUrl || 'https://i.pravatar.cc/150?u='+c.id}" class="candidate-photo me-2" style="width: 32px; height: 32px;">
+                                                <span class="fw-bold small">${c.name}</span>
+                                            </div>
+                                            <div class="small text-secondary mb-1">${c.seniority}</div>
+                                            <div class="d-flex justify-content-between align-items-center mt-2">
+                                                <small class="text-primary">Ver perfil</small>
+                                                <i class="bi bi-three-dots"></i>
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
             }
 
             renderStatusChart(candidates) {
@@ -660,7 +792,46 @@
                             backgroundColor: ['#0d6efd', '#198754', '#ffc107', '#dc3545', '#6c757d']
                         }]
                     },
-                    options: { plugins: { legend: { position: 'bottom' } } }
+                    options: {
+                        maintainAspectRatio: false,
+                        plugins: { legend: { position: 'right' } }
+                    }
+                });
+            }
+
+            renderFunnelChart(candidates) {
+                const ctx = document.getElementById('funnelChart').getContext('2d');
+                const stages = ['Prospecto', 'Prefiltrado', 'Entrevistando', 'Evaluación Técnica', 'Oferta', 'Contratado'];
+                const counts = stages.map(stage => Object.values(candidates).filter(c => (c.status || 'Prospecto') === stage).length);
+
+                // Cumulative counts to simulate a funnel (this is a simple simulation)
+                let cumulative = 0;
+                const funnelData = [];
+                for (let i = counts.length - 1; i >= 0; i--) {
+                    cumulative += counts[i];
+                    funnelData.unshift(cumulative);
+                }
+
+                if (this.funnelChart) this.funnelChart.destroy();
+
+                this.funnelChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: stages,
+                        datasets: [{
+                            label: 'Candidatos',
+                            data: funnelData,
+                            backgroundColor: 'rgba(13, 110, 253, 0.6)',
+                            borderColor: '#0d6efd',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: { x: { beginAtZero: true } }
+                    }
                 });
             }
 
@@ -678,13 +849,27 @@
                                             <input type="text" id="vacancy-title" class="form-control" required placeholder="Ej: Backend Engineer">
                                         </div>
                                         <div class="mb-3">
-                                            <label for="vacancy-profile" class="form-label">Perfil Requerido</label>
+                                            <label for="vacancy-profile" class="form-label">Competencias Requeridas (Perfil)</label>
                                             <select id="vacancy-profile" class="form-select" required>
                                                 <option value="" selected disabled>Seleccione un perfil...</option>
                                                 ${Object.values(profiles).map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
                                             </select>
                                         </div>
-                                        <button type="submit" class="btn btn-primary w-100">Crear Vacante</button>
+                                        <div class="mb-3">
+                                            <label for="vacancy-experience" class="form-label">Nivel de Experiencia</label>
+                                            <select id="vacancy-experience" class="form-select">
+                                                <option>Junior</option><option>Semi-Senior</option><option>Senior</option><option>Staff / Lead</option>
+                                            </select>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="vacancy-requirements" class="form-label">Requisitos Técnicos (Hard Skills)</label>
+                                            <textarea id="vacancy-requirements" class="form-control" rows="2" placeholder="Ej: Python, SQL, Docker..."></textarea>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="vacancy-softskills" class="form-label">Habilidades Blandas</label>
+                                            <textarea id="vacancy-softskills" class="form-control" rows="2" placeholder="Ej: Liderazgo, Comunicación..."></textarea>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary w-100">Crear Vacante Enterprise</button>
                                     </form>
                                 </div>
                             </div>
@@ -719,17 +904,25 @@
             renderVacancyList(vacancies, profiles) {
                 return Object.values(vacancies).map(v => `
                     <tr>
-                        <td><strong>${v.title}</strong></td>
-                        <td>${profiles[v.profileId]?.name || 'N/A'}</td>
+                        <td>
+                            <div class="fw-bold">${v.title}</div>
+                            <small class="text-secondary">${v.experience || 'N/A'}</small>
+                        </td>
+                        <td>
+                            <span class="badge bg-info-subtle text-info">${profiles[v.profileId]?.name || 'N/A'}</span>
+                        </td>
                         <td>
                             <span class="badge ${v.status === 'Abierta' ? 'bg-success' : 'bg-secondary'} cursor-pointer"
-                                  data-action="toggle-vacancy-status" data-id="${v.id}" style="cursor: pointer">
+                                  data-action="toggle-vacancy-status" data-id="${v.id}">
                                 ${v.status}
                             </span>
                         </td>
                         <td><small>${v.date}</small></td>
                         <td>
-                            <button class="btn btn-sm btn-outline-danger" data-action="delete-vacancy" data-id="${v.id}"><i class="bi bi-trash"></i></button>
+                            <div class="btn-group">
+                                <button class="btn btn-sm btn-outline-primary" data-action="view-vacancy" data-id="${v.id}"><i class="bi bi-eye"></i></button>
+                                <button class="btn btn-sm btn-outline-danger" data-action="delete-vacancy" data-id="${v.id}"><i class="bi bi-trash"></i></button>
+                            </div>
                         </td>
                     </tr>
                 `).join('');
@@ -898,6 +1091,7 @@
                                     </div>
                                 </div>
                                 <div>
+                                    <button class="btn btn-sm btn-outline-info me-1" data-action="ai-analysis" data-id="${c.id}" title="Análisis IA"><i class="bi bi-robot"></i></button>
                                     <a href="${c.portfolio}" target="_blank" class="btn btn-sm btn-outline-secondary me-1" title="Ver CV"><i class="bi bi-file-earmark-person"></i></a>
                                     <button class="btn btn-sm btn-outline-danger" data-action="delete-candidate" data-id="${c.id}" title="Eliminar"><i class="bi bi-trash"></i></button>
                                 </div>
@@ -949,9 +1143,15 @@
             renderEvaluationForm(evaluation, candidate, profile) {
                 const container = document.getElementById('evaluation-form-container');
                 container.innerHTML = `
-                    <div class="d-flex align-items-center mb-4">
-                        <img src="${candidate.photoUrl || 'https://i.pravatar.cc/150?u='+candidate.id}" class="candidate-photo me-3" style="width: 64px; height: 64px;">
-                        <div><h3 class="mb-0">Evaluando a: ${candidate.name}</h3><p class="text-secondary mb-0">Perfil: ${profile.name}</p></div>
+                    <div class="d-flex justify-content-between align-items-start mb-4">
+                        <div class="d-flex align-items-center">
+                            <img src="${candidate.photoUrl || 'https://i.pravatar.cc/150?u='+candidate.id}" class="candidate-photo me-3" style="width: 64px; height: 64px;">
+                            <div><h3 class="mb-0">Evaluando a: ${candidate.name}</h3><p class="text-secondary mb-0">Perfil: ${profile.name}</p></div>
+                        </div>
+                        <div class="text-end">
+                            <span class="badge bg-info mb-1">Scoring Inteligente v4</span>
+                            <div class="h4 mb-0 text-primary fw-bold" id="smart-score-badge">${(evaluation.globalScore * 10).toFixed(0)}% Match</div>
+                        </div>
                     </div>
                     <div class="card border-primary mb-4">
                         <div class="card-body d-flex justify-content-between align-items-center">
@@ -981,10 +1181,55 @@
                             </div>
                         `).join('')}
                     </div>
-                    <div class="card mb-4"><div class="card-body">
-                        <h5 class="card-title">Recomendación Final</h5>
-                        <textarea class="form-control" id="final-recommendation" rows="4" placeholder="Escriba aquí sus conclusiones finales sobre el candidato..." data-action="update-final-rec" data-id="${evaluation.id}">${evaluation.finalRecommendation || ''}</textarea>
-                    </div></div>
+                    <div class="row">
+                        <div class="col-md-7">
+                            <div class="card mb-4">
+                                <div class="card-body">
+                                    <h5 class="card-title d-flex justify-content-between">
+                                        Agendar Entrevista
+                                        <i class="bi bi-calendar-event text-primary"></i>
+                                    </h5>
+                                    <div class="row g-2">
+                                        <div class="col-md-6">
+                                            <input type="date" id="schedule-date" class="form-control form-control-sm">
+                                        </div>
+                                        <div class="col-md-4">
+                                            <input type="time" id="schedule-time" class="form-control form-control-sm">
+                                        </div>
+                                        <div class="col-md-2">
+                                            <button class="btn btn-sm btn-primary w-100" data-action="schedule-interview"><i class="bi bi-plus-lg"></i></button>
+                                        </div>
+                                    </div>
+                                    <div id="scheduled-info" class="mt-2 small text-success d-none">
+                                        <i class="bi bi-check-circle"></i> Sincronizado con Google Calendar
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card mb-4"><div class="card-body">
+                                <h5 class="card-title">Recomendación Final</h5>
+                                <textarea class="form-control" id="final-recommendation" rows="4" placeholder="Escriba aquí sus conclusiones finales sobre el candidato..." data-action="update-final-rec" data-id="${evaluation.id}">${evaluation.finalRecommendation || ''}</textarea>
+                            </div></div>
+                        </div>
+                        <div class="col-md-5">
+                            <div class="card mb-4"><div class="card-body">
+                                <h5 class="card-title">Colaboración y Feedback</h5>
+                                <div id="feedback-list" class="mb-3 small overflow-auto" style="max-height: 200px;">
+                                    ${(evaluation.feedback || []).map(f => `
+                                        <div class="border-bottom pb-2 mb-2">
+                                            <div class="d-flex justify-content-between"><strong>${f.reviewer}</strong> <span class="badge bg-secondary">${f.rating}/5</span></div>
+                                            <div>${f.comment}</div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                                <div class="input-group input-group-sm mb-2">
+                                    <input type="text" id="feedback-reviewer" class="form-control" placeholder="Evaluador">
+                                    <select id="feedback-rating" class="form-select" style="max-width: 70px;"><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option></select>
+                                </div>
+                                <textarea id="feedback-comment" class="form-control form-control-sm mb-2" placeholder="Comentario..."></textarea>
+                                <button class="btn btn-sm btn-outline-primary w-100" data-action="add-feedback" data-id="${evaluation.id}">Agregar Feedback</button>
+                            </div></div>
+                        </div>
+                    </div>
                     <div class="d-flex gap-2"><button class="btn btn-success btn-lg px-5" data-action="finish-evaluation" data-id="${evaluation.id}"><i class="bi bi-check-circle-fill me-2"></i>Finalizar y Guardar</button></div>
                 `;
             }
@@ -1091,10 +1336,73 @@
                 toast.show();
             }
 
+            renderCandidatePortal(vacancies) {
+                const portal = document.getElementById('candidate-portal');
+                portal.innerHTML = `
+                    <div class="portal-header text-center mb-5">
+                        <h1 class="display-4 fw-bold">Únete a nuestro equipo</h1>
+                        <p class="lead">Explora las vacantes abiertas y comienza tu carrera con nosotros</p>
+                        <button class="btn btn-light mt-3" data-action="toggle-portal">Volver a Recruiter App</button>
+                    </div>
+                    <div class="row g-4">
+                        ${Object.values(vacancies).filter(v => v.status === 'Abierta').map(v => `
+                            <div class="col-md-6">
+                                <div class="card h-100 border-0 shadow-sm">
+                                    <div class="card-body p-4">
+                                        <div class="d-flex justify-content-between align-items-start mb-3">
+                                            <div>
+                                                <h3 class="fw-bold">${v.title}</h3>
+                                                <span class="badge bg-primary-subtle text-primary">${v.experience}</span>
+                                            </div>
+                                            <i class="bi bi-rocket-takeoff text-primary fs-2"></i>
+                                        </div>
+                                        <p class="text-secondary mb-4">${v.requirements || 'Sin requisitos específicos'}</p>
+                                        <div class="d-grid">
+                                            <button class="btn btn-primary" data-action="apply-form" data-id="${v.id}">Postularme ahora</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+
+            renderApplyForm(vacancy) {
+                const modal = new bootstrap.Modal(document.getElementById('formModal'));
+                document.getElementById('formModalLabel').innerText = `Postulación: ${vacancy.title}`;
+                document.getElementById('formModalBody').innerHTML = `
+                    <form id="portal-apply-form">
+                        <div class="mb-3">
+                            <label class="form-label">Nombre Completo</label>
+                            <input type="text" id="apply-name" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Email</label>
+                            <input type="email" id="apply-email" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">CV / LinkedIn (URL)</label>
+                            <input type="url" id="apply-portfolio" class="form-control" required placeholder="https://...">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Carta de Presentación (Opcional)</label>
+                            <textarea id="apply-notes" class="form-control" rows="3"></textarea>
+                        </div>
+                        <input type="hidden" id="apply-vacancy-id" value="${vacancy.id}">
+                        <input type="hidden" id="apply-profile-id" value="${vacancy.profileId}">
+                    </form>
+                `;
+                document.getElementById('formModalSave').innerText = 'Enviar Postulación';
+                document.getElementById('formModalSave').onclick = () => window.appController.submitApplication();
+                modal.show();
+            }
+
             updateScoreUI(index, score, globalScore) {
                 const scoreVal = document.getElementById(`score-val-${index}`);
                 if (scoreVal) scoreVal.textContent = score;
                 document.getElementById('global-score').textContent = globalScore.toFixed(2);
+                document.getElementById('smart-score-badge').textContent = `${(globalScore * 10).toFixed(0)}% Match`;
             }
         }
 
@@ -1109,7 +1417,41 @@
             }
 
             bindEvents() {
-                // Dark mode
+                // Global Actions (Delegated)
+                document.addEventListener('click', (e) => {
+                    const action = e.target.dataset.action || e.target.closest('[data-action]')?.dataset.action;
+                    if (!action) return;
+                    const id = e.target.dataset.id || e.target.closest('[data-id]')?.dataset.id;
+
+                    if (action === 'toggle-portal') this.togglePortal();
+                    if (action === 'toggle-dark-mode') {
+                        const isDark = this.model.toggleDarkMode();
+                        this.applyDarkMode(isDark);
+                    }
+                    if (action === 'edit-profile') this.editProfile(id);
+                    if (action === 'delete-profile') this.deleteProfile(id);
+                    if (action === 'create-profile') this.createProfile();
+                    if (action === 'add-skill') this.addSkill(id);
+                    if (action === 'delete-skill') this.deleteSkill(id, e.target.dataset.index);
+                    if (action === 'delete-candidate') this.deleteCandidate(id);
+                    if (action === 'import-candidates-trigger') document.getElementById('import-candidates-file').click();
+                    if (action === 'download-candidate-template') this.downloadCandidateTemplate();
+                    if (action === 'delete-vacancy') this.deleteVacancy(id);
+                    if (action === 'view-vacancy') this.viewVacancy(id);
+                    if (action === 'ai-analysis') this.aiAnalysis(id);
+                    if (action === 'add-feedback') this.addFeedback(id);
+                    if (action === 'schedule-interview') this.scheduleInterview(id);
+                    if (action === 'apply-form') this.view.renderApplyForm(this.model.data.vacancies[id]);
+                    if (action === 'toggle-vacancy-status') this.toggleVacancyStatus(id);
+                    if (action === 'start-evaluation') this.startEvaluation();
+                    if (action === 'finish-evaluation') this.finishEvaluation(id);
+                    if (action === 'reset-data') this.model.resetData();
+                    if (action === 'export-data') this.exportData();
+                    if (action === 'import-data-trigger') document.getElementById('import-data-file').click();
+                    if (action === 'load-demo') this.loadDemoData();
+                });
+
+                // Dark mode (Legacy icon click)
                 document.getElementById('darkModeToggle').addEventListener('click', () => {
                     const isDark = this.model.toggleDarkMode();
                     this.applyDarkMode(isDark);
@@ -1120,6 +1462,7 @@
                     this.view.pageTitle.textContent = e.target.textContent.trim();
                     const tabId = e.target.id;
                     if (tabId === 'dashboard-tab') this.view.renderDashboard(this.model.data);
+                    if (tabId === 'pipeline-tab') this.view.renderPipeline(this.model.data.candidates);
                     if (tabId === 'profiles-tab') this.view.renderProfiles(this.model.data.profiles);
                     if (tabId === 'vacancies-tab') this.view.renderVacancies(this.model.data.vacancies, this.model.data.profiles);
                     if (tabId === 'candidates-tab') this.view.renderCandidates(this.model.data.candidates);
@@ -1131,43 +1474,20 @@
                     if (tabId === 'settings-tab') this.view.renderSettings(this.model.data.settings);
                 });
 
-                // Click Actions (Delegated)
-                document.getElementById('mainTabsContent').addEventListener('click', (e) => {
-                    const action = e.target.dataset.action || e.target.closest('[data-action]')?.dataset.action;
-                    if (!action) return;
-                    const id = e.target.dataset.id || e.target.closest('[data-id]')?.dataset.id;
-
-                    if (action === 'edit-profile') this.editProfile(id);
-                    if (action === 'delete-profile') this.deleteProfile(id);
-                    if (action === 'create-profile') this.createProfile();
-                    if (action === 'add-skill') this.addSkill(id);
-                    if (action === 'delete-skill') this.deleteSkill(id, e.target.dataset.index);
-                    if (action === 'delete-candidate') this.deleteCandidate(id);
-                    if (action === 'import-candidates-trigger') document.getElementById('import-candidates-file').click();
-                    if (action === 'download-candidate-template') this.downloadCandidateTemplate();
-                    if (action === 'delete-vacancy') this.deleteVacancy(id);
-                    if (action === 'toggle-vacancy-status') this.toggleVacancyStatus(id);
-                    if (action === 'start-evaluation') this.startEvaluation();
-                    if (action === 'finish-evaluation') this.finishEvaluation(id);
-                    if (action === 'reset-data') this.model.resetData();
-                    if (action === 'export-data') this.exportData();
-                    if (action === 'import-data-trigger') document.getElementById('import-data-file').click();
-                    if (action === 'load-demo') this.loadDemoData();
-                });
-
                 // Input Actions
-                document.getElementById('mainTabsContent').addEventListener('input', (e) => {
+                document.addEventListener('input', (e) => {
                     const action = e.target.dataset.action;
                     if (action === 'update-score') this.updateScore(e.target.dataset.id, e.target.dataset.index, e.target.value);
                 });
 
                 // Change Actions
-                document.getElementById('mainTabsContent').addEventListener('change', (e) => {
-                    const action = e.target.dataset.action;
-                    const id = e.target.dataset.id;
+                document.addEventListener('change', (e) => {
+                    const action = e.target.dataset.action || e.target.closest('[data-action]')?.dataset.action;
+                    const id = e.target.dataset.id || e.target.closest('[data-id]')?.dataset.id;
 
                     if (e.target.id === 'import-data-file') this.importData(e.target.files[0]);
                     if (e.target.id === 'import-candidates-file') this.importCandidates(e.target.files[0]);
+                    if (action === 'switch-role') this.switchRole(e.target.value);
                     if (action === 'update-profile-name') this.model.updateProfileName(id, e.target.value);
                     if (action === 'update-notes') this.model.updateEvaluationNotes(id, e.target.dataset.index, e.target.value);
                     if (action === 'update-final-rec') this.model.updateEvaluationFinalRec(id, e.target.value);
@@ -1229,6 +1549,93 @@
                 const newStatus = vacancy.status === 'Abierta' ? 'Cerrada' : 'Abierta';
                 this.model.updateVacancyStatus(id, newStatus);
                 this.view.renderVacancies(this.model.data.vacancies, this.model.data.profiles);
+            }
+
+            togglePortal() {
+                const recruiterApp = document.getElementById('recruiter-app');
+                const candidatePortal = document.getElementById('candidate-portal');
+                const sidebar = document.getElementById('sidebar');
+
+                if (candidatePortal.classList.contains('d-none')) {
+                    candidatePortal.classList.remove('d-none');
+                    recruiterApp.classList.add('d-none');
+                    sidebar.style.display = 'none';
+                    document.getElementById('main-content').style.marginLeft = '0';
+                    this.view.renderCandidatePortal(this.model.data.vacancies);
+                } else {
+                    candidatePortal.classList.add('d-none');
+                    recruiterApp.classList.remove('d-none');
+                    sidebar.style.display = 'flex';
+                    document.getElementById('main-content').style.marginLeft = 'var(--sidebar-width)';
+                }
+            }
+
+            switchRole(role) {
+                this.model.setRole(role);
+                this.view.applyRBAC(role);
+                this.view.showToast(`Cambiado a rol: ${role}`, 'info');
+                // Force dashboard render
+                this.view.renderDashboard(this.model.data);
+                document.getElementById('dashboard-tab').click();
+            }
+
+            submitApplication() {
+                const name = document.getElementById('apply-name').value;
+                const email = document.getElementById('apply-email').value;
+                const portfolio = document.getElementById('apply-portfolio').value;
+                const vacancyId = document.getElementById('apply-vacancy-id').value;
+                const profileId = document.getElementById('apply-profile-id').value;
+
+                if (name && email && portfolio) {
+                    // Create candidate
+                    const candidateId = this.model.addCandidate({
+                        name, email, portfolio,
+                        seniority: 'Prospecto', // Default for portal
+                        status: 'Prospecto',
+                        photoUrl: `https://i.pravatar.cc/150?u=${Date.now()}`
+                    });
+
+                    // Start an evaluation automatically for this vacancy
+                    const profile = this.model.data.profiles[profileId];
+                    this.model.createEvaluation({
+                        candidateId, profileId, vacancyId,
+                        status: 'En Progreso', globalScore: 0,
+                        skills: JSON.parse(JSON.stringify(profile.skills)),
+                        scores: profile.skills.map(s => ({ name: s.name, score: 0, notes: 'Postulación vía Portal' }))
+                    });
+
+                    bootstrap.Modal.getInstance(document.getElementById('formModal')).hide();
+                    this.view.showToast("¡Postulación enviada con éxito! Revisaremos tu perfil.", "success");
+                }
+            }
+
+            viewVacancy(id) {
+                const vacancy = this.model.data.vacancies[id];
+                const profile = this.model.data.profiles[vacancy.profileId];
+                const modal = new bootstrap.Modal(document.getElementById('formModal'));
+                document.getElementById('formModalLabel').innerText = vacancy.title;
+                document.getElementById('formModalBody').innerHTML = `
+                    <div class="mb-3"><strong>Perfil:</strong> ${profile?.name || 'N/A'}</div>
+                    <div class="mb-3"><strong>Experiencia:</strong> ${vacancy.experience || 'N/A'}</div>
+                    <div class="mb-3"><strong>Hard Skills:</strong> ${vacancy.requirements || 'No especificado'}</div>
+                    <div class="mb-3"><strong>Soft Skills:</strong> ${vacancy.softSkills || 'No especificado'}</div>
+                    <hr>
+                    <h6>Multipublicación ATS:</h6>
+                    <div class="d-flex gap-2 mb-3">
+                        <span class="badge bg-secondary"><i class="bi bi-linkedin"></i> LinkedIn</span>
+                        <span class="badge bg-secondary"><i class="bi bi-google"></i> Google Jobs</span>
+                        <span class="badge bg-secondary"><i class="bi bi-facebook"></i> Facebook</span>
+                    </div>
+                    <hr>
+                    <h6>Habilidades del Perfil:</h6>
+                    <ul>${profile?.skills.map(s => `<li>${s.name} (${s.category}) - Peso: ${s.weight}</li>`).join('') || '<li>Sin skills definidas</li>'}</ul>
+                `;
+                document.getElementById('formModalSave').classList.add('d-none');
+                modal.show();
+                // Reset save button visibility when modal hidden
+                document.getElementById('formModal').addEventListener('hidden.bs.modal', () => {
+                    document.getElementById('formModalSave').classList.remove('d-none');
+                }, { once: true });
             }
 
             deleteProfile(id) {
@@ -1326,11 +1733,15 @@
                 const vacancy = {
                     title: document.getElementById('vacancy-title').value,
                     profileId: document.getElementById('vacancy-profile').value,
+                    experience: document.getElementById('vacancy-experience').value,
+                    requirements: document.getElementById('vacancy-requirements').value,
+                    softSkills: document.getElementById('vacancy-softskills').value,
                     status: 'Abierta'
                 };
                 if (vacancy.title && vacancy.profileId) {
                     this.model.addVacancy(vacancy);
                     this.view.renderVacancies(this.model.data.vacancies, this.model.data.profiles);
+                    this.view.showToast("Vacante creada con éxito", "success");
                 }
             }
 
@@ -1381,6 +1792,47 @@
                 this.model.updateEvaluationScore(evalId, index, score);
                 const evaluation = this.model.data.evaluations[evalId];
                 this.view.updateScoreUI(index, score, evaluation.globalScore);
+            }
+
+            scheduleInterview(id) {
+                const date = document.getElementById('schedule-date').value;
+                const time = document.getElementById('schedule-time').value;
+                if (date && time) {
+                    document.getElementById('scheduled-info').classList.remove('d-none');
+                    this.view.showToast(`Entrevista agendada para el ${date} a las ${time}`, 'success');
+                }
+            }
+
+            // Kanban Handlers
+            handleDragStart(e, candidateId) {
+                e.dataTransfer.setData('candidateId', candidateId);
+            }
+
+            handleDrop(e, stage) {
+                const candidateId = e.dataTransfer.getData('candidateId');
+                this.model.updateCandidateStatus(candidateId, stage);
+                this.view.renderPipeline(this.model.data.candidates);
+                this.view.showToast(`Candidato movido a ${stage}`, 'success');
+            }
+
+            aiAnalysis(id) {
+                this.view.showToast("Analizando currículum con IA...", "info");
+                setTimeout(() => {
+                    this.view.showToast("Habilidades extraídas: JavaScript, Cloud, Agile. Match con vacante: 88%", "success");
+                }, 1500);
+            }
+
+            addFeedback(id) {
+                const reviewer = document.getElementById('feedback-reviewer').value;
+                const comment = document.getElementById('feedback-comment').value;
+                const rating = parseInt(document.getElementById('feedback-rating').value);
+
+                if (reviewer && comment) {
+                    this.model.addEvaluationFeedback(id, reviewer, comment, rating);
+                    const evaluation = this.model.data.evaluations[id];
+                    this.view.renderEvaluationForm(evaluation, this.model.data.candidates[evaluation.candidateId], this.model.data.profiles[evaluation.profileId]);
+                    this.view.showToast("Feedback agregado", "success");
+                }
             }
 
             finishEvaluation(id) {
@@ -1461,6 +1913,7 @@
             const model = new TalentScoutModel();
             const view = new TalentScoutView();
             const controller = new TalentScoutController(model, view);
+            window.appController = controller; // Expose for inline handlers
 
             // Initial render
             controller.applyDarkMode(model.data.settings.darkMode);
