@@ -5,76 +5,225 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TalentScout Enterprise</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <style>
+        :root {
+            --sidebar-width: 280px;
+            --sidebar-bg: #212529;
+            --sidebar-color: #ffffff;
+            --main-bg: #f8f9fa;
+            --card-bg: #ffffff;
+            --text-color: #212529;
+            --transition-speed: 0.3s;
+        }
+
+        body.dark-mode {
+            --main-bg: #121212;
+            --card-bg: #1e1e1e;
+            --text-color: #e0e0e0;
+            --sidebar-bg: #000000;
+        }
+
+        body.dark-mode #main-content {
+            background-color: var(--main-bg);
+        }
+
+        body.dark-mode .list-group-item {
+            color: var(--text-color);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        body.dark-mode .form-control,
+        body.dark-mode .form-select {
+            background-color: #2b2b2b;
+            border-color: #404040;
+            color: #ffffff;
+        }
+
+        body.dark-mode .form-control:focus,
+        body.dark-mode .form-select:focus {
+            background-color: #333333;
+            color: #ffffff;
+        }
+
+        body.dark-mode .modal-content {
+            background-color: var(--card-bg);
+            color: var(--text-color);
+        }
+
+        body.dark-mode .btn-close {
+            filter: invert(1);
+        }
+
         body {
-            background-color: #f8f9fa;
+            background-color: var(--main-bg) !important;
+            color: var(--text-color) !important;
+            transition: background-color var(--transition-speed), color var(--transition-speed);
+            min-height: 100vh;
+            display: flex;
         }
-        .nav-tabs .nav-link {
-            color: #495057;
+
+        #sidebar {
+            width: var(--sidebar-width);
+            background-color: var(--sidebar-bg);
+            color: var(--sidebar-color);
+            min-height: 100vh;
+            position: fixed;
+            transition: all var(--transition-speed);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
         }
-        .nav-tabs .nav-link.active {
-            color: #000;
-            background-color: #fff;
-            border-color: #dee2e6 #dee2e6 #fff;
+
+        #main-content {
+            margin-left: var(--sidebar-width);
+            flex-grow: 1;
+            padding: 2rem;
+            transition: margin-left var(--transition-speed);
         }
+
+        .nav-pills .nav-link {
+            color: rgba(255, 255, 255, 0.7);
+            border-radius: 0;
+            padding: 1rem 1.5rem;
+            transition: all 0.2s;
+            border-left: 4px solid transparent;
+        }
+
+        .nav-pills .nav-link:hover {
+            color: #fff;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-pills .nav-link.active {
+            color: #fff;
+            background-color: rgba(255, 255, 255, 0.15);
+            border-left-color: #0d6efd;
+        }
+
         .card {
+            background-color: var(--card-bg);
+            color: var(--text-color);
             border: none;
             box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+            margin-bottom: 1.5rem;
+        }
+
+        .dark-mode-toggle {
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 50%;
+            transition: background-color 0.2s;
+        }
+
+        .dark-mode-toggle:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .badge-status {
+            font-size: 0.8rem;
+            padding: 0.4rem 0.6rem;
+        }
+
+        .candidate-photo {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            object-fit: cover;
+            background-color: #dee2e6;
         }
     </style>
 </head>
 <body>
-    <div class="container mt-4">
-        <div class="d-flex align-items-center mb-4">
-            <h1 class="me-3">TalentScout Enterprise</h1>
-            <span class="badge bg-primary">v1.0</span>
-        </div>
+    <aside id="sidebar">
+        <div class="p-4 d-flex flex-column h-100">
+            <div class="d-flex align-items-center mb-5">
+                <i class="bi bi-rocket-takeoff-fill fs-3 me-2 text-primary"></i>
+                <h4 class="mb-0 fw-bold">TalentScout</h4>
+            </div>
 
-        <ul class="nav nav-tabs" id="mainTabs" role="tablist">
-            <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="profiles-tab" data-bs-toggle="tab" data-bs-target="#profiles" type="button" role="tab" aria-controls="profiles" aria-selected="true">📂 Gestión de Perfiles</button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="candidates-tab" data-bs-toggle="tab" data-bs-target="#candidates" type="button" role="tab" aria-controls="candidates" aria-selected="false">👥 Base de Candidatos</button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="evaluation-tab" data-bs-toggle="tab" data-bs-target="#evaluation" type="button" role="tab" aria-controls="evaluation" aria-selected="false">📝 Sala de Evaluación</button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="analytics-tab" data-bs-toggle="tab" data-bs-target="#analytics" type="button" role="tab" aria-controls="analytics" aria-selected="false">📊 Analytics & Comparación</button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="settings-tab" data-bs-toggle="tab" data-bs-target="#settings" type="button" role="tab" aria-controls="settings" aria-selected="false">⚙️ Configuración Global</button>
-            </li>
-        </ul>
+            <ul class="nav nav-pills flex-column mb-auto" id="mainTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link w-100 text-start active" id="dashboard-tab" data-bs-toggle="tab" data-bs-target="#dashboard" type="button" role="tab">
+                        <i class="bi bi-speedometer2 me-2"></i> Dashboard
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link w-100 text-start" id="profiles-tab" data-bs-toggle="tab" data-bs-target="#profiles" type="button" role="tab">
+                        <i class="bi bi-folder2-open me-2"></i> Perfiles
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link w-100 text-start" id="candidates-tab" data-bs-toggle="tab" data-bs-target="#candidates" type="button" role="tab">
+                        <i class="bi bi-people me-2"></i> Candidatos
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link w-100 text-start" id="evaluation-tab" data-bs-toggle="tab" data-bs-target="#evaluation" type="button" role="tab">
+                        <i class="bi bi-clipboard-check me-2"></i> Evaluación
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link w-100 text-start" id="analytics-tab" data-bs-toggle="tab" data-bs-target="#analytics" type="button" role="tab">
+                        <i class="bi bi-bar-chart me-2"></i> Analytics
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link w-100 text-start" id="settings-tab" data-bs-toggle="tab" data-bs-target="#settings" type="button" role="tab">
+                        <i class="bi bi-gear me-2"></i> Configuración
+                    </button>
+                </li>
+            </ul>
+
+            <div class="mt-auto pt-3 border-top border-secondary">
+                <div class="d-flex align-items-center justify-content-between">
+                    <span class="small text-secondary">v2.0 Enterprise</span>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <main id="main-content">
+        <header class="d-flex justify-content-between align-items-center mb-5">
+            <h2 id="page-title" class="fw-bold">Dashboard</h2>
+            <div id="header-actions" class="d-flex align-items-center">
+                <i class="bi bi-moon-stars-fill fs-4 dark-mode-toggle me-3 text-secondary" id="darkModeToggle"></i>
+                <!-- Contextual actions will appear here -->
+            </div>
+        </header>
 
         <div class="tab-content" id="mainTabsContent">
+            <!-- Módulo 0: Dashboard -->
+            <div class="tab-pane fade show active" id="dashboard" role="tabpanel">
+                <!-- Dashboard content -->
+            </div>
+
             <!-- Módulo 1: Gestión de Perfiles -->
-            <div class="tab-pane fade show active" id="profiles" role="tabpanel" aria-labelledby="profiles-tab">
-                <!-- Profile content will be dynamically rendered here -->
+            <div class="tab-pane fade" id="profiles" role="tabpanel">
+                <!-- Profile content -->
             </div>
 
             <!-- Módulo 2: Base de Candidatos -->
-            <div class="tab-pane fade" id="candidates" role="tabpanel" aria-labelledby="candidates-tab">
-                <!-- Candidates content will be dynamically rendered here -->
+            <div class="tab-pane fade" id="candidates" role="tabpanel">
+                <!-- Candidates content -->
             </div>
 
             <!-- Módulo 3: Sala de Evaluación -->
-            <div class="tab-pane fade" id="evaluation" role="tabpanel" aria-labelledby="evaluation-tab">
-                <!-- Evaluation content will be dynamically rendered here -->
+            <div class="tab-pane fade" id="evaluation" role="tabpanel">
+                <!-- Evaluation content -->
             </div>
 
             <!-- Módulo 4: Analytics & Comparación -->
-            <div class="tab-pane fade" id="analytics" role="tabpanel" aria-labelledby="analytics-tab">
-                <!-- Analytics content will be dynamically rendered here -->
+            <div class="tab-pane fade" id="analytics" role="tabpanel">
+                <!-- Analytics content -->
             </div>
 
             <!-- Módulo 5: Configuración Global -->
-            <div class="tab-pane fade" id="settings" role="tabpanel" aria-labelledby="settings-tab">
-                <!-- Settings content will be dynamically rendered here -->
+            <div class="tab-pane fade" id="settings" role="tabpanel">
+                <!-- Settings content -->
             </div>
         </div>
-    </div>
+    </main>
 
     <div class="modal fade" id="formModal" tabindex="-1" aria-labelledby="formModalLabel" aria-hidden="true">
         <div class="modal-dialog">
@@ -119,6 +268,7 @@
                     profiles: {},
                     candidates: {},
                     settings: {
+                        darkMode: false,
                         thresholds: {
                             recommended: 80,
                             reserved: 60
@@ -127,12 +277,18 @@
                     evaluations: {}
                 };
                 this.loadData();
+                this.applyDarkMode();
             }
 
             loadData() {
                 const data = localStorage.getItem('talentScoutData');
                 if (data) {
-                    this.data = JSON.parse(data);
+                    const parsed = JSON.parse(data);
+                    // Migration for dark mode setting
+                    if (parsed.settings && parsed.settings.darkMode === undefined) {
+                        parsed.settings.darkMode = false;
+                    }
+                    this.data = parsed;
                 } else {
                     this.initDefaultData();
                 }
@@ -149,36 +305,59 @@
                         { name: 'Node.js', category: 'Hard Skill', weight: 5 },
                         { name: 'Inglés', category: 'Soft Skill', weight: 3 },
                         { name: 'Comunicación', category: 'Soft Skill', weight: 4 }
+                    ]},
+                    '2': { id: '2', name: 'Product Manager', skills: [
+                        { name: 'Agile', category: 'Hard Skill', weight: 5 },
+                        { name: 'Roadmapping', category: 'Hard Skill', weight: 4 },
+                        { name: 'Liderazgo', category: 'Soft Skill', weight: 5 },
+                        { name: 'Empatía', category: 'Soft Skill', weight: 4 }
                     ]}
                 };
                 this.data.candidates = {
-                    '1': { id: '1', name: 'Juan Perez', seniority: 'Senior', email: 'juan.perez@example.com', portfolio: 'https://example.com' },
-                    '2': { id: '2', name: 'Maria Garcia', seniority: 'Semi-Senior', email: 'maria.garcia@example.com', portfolio: 'https://example.com' }
+                    '1': { id: '1', name: 'Juan Perez', seniority: 'Senior', email: 'juan.perez@example.com', portfolio: 'https://example.com', status: 'Entrevistando', photoUrl: 'https://i.pravatar.cc/150?u=1' },
+                    '2': { id: '2', name: 'Maria Garcia', seniority: 'Semi-Senior', email: 'maria.garcia@example.com', portfolio: 'https://example.com', status: 'Contratado', photoUrl: 'https://i.pravatar.cc/150?u=2' },
+                    '3': { id: '3', name: 'Carlos Ruiz', seniority: 'Junior', email: 'carlos.ruiz@example.com', portfolio: 'https://example.com', status: 'Prospecto', photoUrl: 'https://i.pravatar.cc/150?u=3' }
                 };
                 this.data.evaluations = {
                     '1': {
+                        id: '1',
                         candidateId: '1',
                         profileId: '1',
                         status: 'Evaluado',
+                        skills: [
+                            { name: 'React', category: 'Hard Skill', weight: 5 },
+                            { name: 'Node.js', category: 'Hard Skill', weight: 5 },
+                            { name: 'Inglés', category: 'Soft Skill', weight: 3 },
+                            { name: 'Comunicación', category: 'Soft Skill', weight: 4 }
+                        ],
                         scores: [
                             { name: 'React', score: 9, notes: 'Excelente dominio' },
                             { name: 'Node.js', score: 8, notes: 'Muy bueno' },
                             { name: 'Inglés', score: 7, notes: 'Bueno' },
                             { name: 'Comunicación', score: 8, notes: 'Claro y conciso' }
                         ],
-                        globalScore: 8.12
+                        globalScore: 8.12,
+                        finalRecommendation: 'Excelente candidato técnico con buenas habilidades de comunicación.'
                     },
                     '2': {
+                        id: '2',
                         candidateId: '2',
                         profileId: '1',
                         status: 'Evaluado',
+                        skills: [
+                            { name: 'React', category: 'Hard Skill', weight: 5 },
+                            { name: 'Node.js', category: 'Hard Skill', weight: 5 },
+                            { name: 'Inglés', category: 'Soft Skill', weight: 3 },
+                            { name: 'Comunicación', category: 'Soft Skill', weight: 4 }
+                        ],
                         scores: [
                             { name: 'React', score: 7, notes: 'Bueno' },
                             { name: 'Node.js', score: 6, notes: 'Aceptable' },
                             { name: 'Inglés', score: 8, notes: 'Fluido' },
                             { name: 'Comunicación', score: 9, notes: 'Excelente comunicadora' }
                         ],
-                        globalScore: 7.29
+                        globalScore: 7.29,
+                        finalRecommendation: 'Buen perfil, aunque le falta profundidad técnica en Node.js.'
                     }
                 };
                 this.saveData();
@@ -188,6 +367,24 @@
         // Extend TalentScoutApp with all module methods
         Object.assign(TalentScoutApp.prototype, {
             bindEvents() {
+                document.getElementById('darkModeToggle').addEventListener('click', () => {
+                    this.data.settings.darkMode = !this.data.settings.darkMode;
+                    this.saveData();
+                    this.applyDarkMode();
+                });
+
+                document.getElementById('mainTabs').addEventListener('shown.bs.tab', (e) => {
+                    const target = e.target.textContent.trim();
+                    document.getElementById('page-title').textContent = target;
+
+                    if (e.target.id === 'dashboard-tab') this.renderDashboard();
+                    if (e.target.id === 'profiles-tab') this.renderProfiles();
+                    if (e.target.id === 'candidates-tab') this.renderCandidates();
+                    if (e.target.id === 'evaluation-tab') this.renderEvaluation();
+                    if (e.target.id === 'analytics-tab') this.renderAnalytics();
+                    if (e.target.id === 'settings-tab') this.renderSettings();
+                });
+
                 document.getElementById('mainTabsContent').addEventListener('click', (e) => {
                     if (e.target.matches('[data-action="edit-profile"]')) {
                         this.editProfile(e.target.dataset.id);
@@ -216,15 +413,38 @@
                     if (e.target.matches('[data-action="reset-data"]')) {
                         this.resetData();
                     }
+                    if (e.target.matches('[data-action="export-data"]')) {
+                        this.exportData();
+                    }
+                    if (e.target.matches('[data-action="import-data-trigger"]')) {
+                        document.getElementById('import-data-file').click();
+                    }
+                    if (e.target.matches('[data-action="load-demo"]')) {
+                        this.loadDemoData();
+                    }
+                });
+
+                document.getElementById('mainTabsContent').addEventListener('input', (e) => {
+                    if (e.target.matches('[data-action="update-score"]')) {
+                        this.updateScore(e.target.dataset.id, e.target.dataset.index, e.target.value);
+                    }
                 });
 
                 document.getElementById('mainTabsContent').addEventListener('change', (e) => {
+                    if (e.target.id === 'import-data-file') {
+                        this.importData(e.target.files[0]);
+                    }
+
                     if (e.target.matches('[data-action="update-profile-name"]')) {
                         this.updateProfileName(e.target.dataset.id, e.target.value);
                     } else if (e.target.matches('[data-action="update-score"]')) {
                         this.updateScore(e.target.dataset.id, e.target.dataset.index, e.target.value);
                     } else if (e.target.matches('[data-action="update-notes"]')) {
                         this.updateNotes(e.target.dataset.id, e.target.dataset.index, e.target.value);
+                    } else if (e.target.matches('[data-action="update-final-rec"]')) {
+                        const evalId = e.target.dataset.id;
+                        this.data.evaluations[evalId].finalRecommendation = e.target.value;
+                        this.saveData();
                     } else if (e.target.matches('#candidate-search')) {
                         const searchTerm = e.target.value.toLowerCase();
                         const filteredCandidates = Object.values(this.data.candidates).filter(c => c.name.toLowerCase().includes(searchTerm));
@@ -245,10 +465,131 @@
                     }
                 });
 
-                document.getElementById('candidates-tab').addEventListener('shown.bs.tab', () => this.renderCandidates());
-                document.getElementById('evaluation-tab').addEventListener('shown.bs.tab', () => this.renderEvaluation());
-                document.getElementById('analytics-tab').addEventListener('shown.bs.tab', () => this.renderAnalytics());
-                document.getElementById('settings-tab').addEventListener('shown.bs.tab', () => this.renderSettings());
+            },
+
+            applyDarkMode() {
+                if (this.data.settings.darkMode) {
+                    document.body.classList.add('dark-mode');
+                    document.documentElement.setAttribute('data-bs-theme', 'dark');
+                    document.getElementById('darkModeToggle').classList.replace('bi-moon-stars-fill', 'bi-sun-fill');
+                } else {
+                    document.body.classList.remove('dark-mode');
+                    document.documentElement.setAttribute('data-bs-theme', 'light');
+                    document.getElementById('darkModeToggle').classList.replace('bi-sun-fill', 'bi-moon-stars-fill');
+                }
+            },
+
+            renderDashboard() {
+                const container = document.getElementById('dashboard');
+                const stats = {
+                    totalCandidates: Object.keys(this.data.candidates).length,
+                    activeProfiles: Object.keys(this.data.profiles).length,
+                    evaluations: Object.values(this.data.evaluations).filter(e => e.status === 'Evaluado').length,
+                    avgScore: 0
+                };
+
+                const evals = Object.values(this.data.evaluations).filter(e => e.status === 'Evaluado');
+                if (evals.length > 0) {
+                    stats.avgScore = evals.reduce((acc, curr) => acc + curr.globalScore, 0) / evals.length;
+                }
+
+                container.innerHTML = `
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-3">
+                            <div class="card p-3 text-center">
+                                <h6 class="text-secondary mb-2">Candidatos Totales</h6>
+                                <h2 class="fw-bold mb-0">${stats.totalCandidates}</h2>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card p-3 text-center">
+                                <h6 class="text-secondary mb-2">Perfiles Activos</h6>
+                                <h2 class="fw-bold mb-0">${stats.activeProfiles}</h2>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card p-3 text-center">
+                                <h6 class="text-secondary mb-2">Entrevistas Realizadas</h6>
+                                <h2 class="fw-bold mb-0">${stats.evaluations}</h2>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card p-3 text-center">
+                                <h6 class="text-secondary mb-2">Puntuación Media</h6>
+                                <h2 class="fw-bold mb-0">${stats.avgScore.toFixed(2)}</h2>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-7">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title mb-4">Candidatos Recientes</h5>
+                                    <ul class="list-group list-group-flush">
+                                        ${Object.values(this.data.candidates).slice(-5).reverse().map(c => `
+                                            <li class="list-group-item bg-transparent d-flex justify-content-between align-items-center px-0">
+                                                <div class="d-flex align-items-center">
+                                                    <img src="${c.photoUrl || 'https://i.pravatar.cc/150?u='+c.id}" class="candidate-photo me-3" alt="">
+                                                    <div>
+                                                        <p class="mb-0 fw-bold">${c.name}</p>
+                                                        <small class="text-secondary">${c.email}</small>
+                                                    </div>
+                                                </div>
+                                                <span class="badge bg-primary-subtle text-primary">${c.status || 'Prospecto'}</span>
+                                            </li>
+                                        `).join('')}
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-5">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title mb-4">Estado de Candidatos</h5>
+                                    <canvas id="statusChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                this.renderStatusChart();
+            },
+
+            renderStatusChart() {
+                const ctx = document.getElementById('statusChart').getContext('2d');
+                const statuses = {};
+                Object.values(this.data.candidates).forEach(c => {
+                    const s = c.status || 'Prospecto';
+                    statuses[s] = (statuses[s] || 0) + 1;
+                });
+
+                if (this.statusChart) this.statusChart.destroy();
+
+                this.statusChart = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: Object.keys(statuses),
+                        datasets: [{
+                            data: Object.values(statuses),
+                            backgroundColor: [
+                                '#0d6efd',
+                                '#198754',
+                                '#ffc107',
+                                '#dc3545',
+                                '#6c757d'
+                            ]
+                        }]
+                    },
+                    options: {
+                        plugins: {
+                            legend: {
+                                position: 'bottom'
+                            }
+                        }
+                    }
+                });
             },
 
             renderProfiles() {
@@ -413,6 +754,44 @@
                 };
                 confirmModal.show();
             },
+
+            exportData() {
+                const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(this.data));
+                const downloadAnchorNode = document.createElement('a');
+                downloadAnchorNode.setAttribute("href", dataStr);
+                downloadAnchorNode.setAttribute("download", "talentscout_backup_" + new Date().toISOString().slice(0, 10) + ".json");
+                document.body.appendChild(downloadAnchorNode);
+                downloadAnchorNode.click();
+                downloadAnchorNode.remove();
+            },
+
+            importData(file) {
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const importedData = JSON.parse(e.target.result);
+                        if (importedData.profiles && importedData.candidates) {
+                            this.data = importedData;
+                            this.saveData();
+                            alert("Datos importados con éxito.");
+                            location.reload();
+                        } else {
+                            alert("El archivo no parece ser un backup válido de TalentScout.");
+                        }
+                    } catch (err) {
+                        alert("Error al procesar el archivo.");
+                    }
+                };
+                reader.readAsText(file);
+            },
+
+            loadDemoData() {
+                if (confirm("Esto reemplazará tus datos actuales por datos de prueba. ¿Continuar?")) {
+                    this.initDefaultData();
+                    location.reload();
+                }
+            },
             renderCandidates() {
                 const container = document.getElementById('candidates');
                 const candidates = Object.values(this.data.candidates);
@@ -427,13 +806,24 @@
                                             <label for="candidate-name" class="form-label">Nombre Completo</label>
                                             <input type="text" id="candidate-name" class="form-control" required>
                                         </div>
-                                        <div class="mb-3">
-                                            <label for="candidate-seniority" class="form-label">Seniority</label>
-                                            <select id="candidate-seniority" class="form-select">
-                                                <option>Junior</option>
-                                                <option>Semi-Senior</option>
-                                                <option>Senior</option>
-                                            </select>
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label for="candidate-seniority" class="form-label">Seniority</label>
+                                                <select id="candidate-seniority" class="form-select">
+                                                    <option>Junior</option>
+                                                    <option>Semi-Senior</option>
+                                                    <option>Senior</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label for="candidate-status" class="form-label">Estado Inicial</label>
+                                                <select id="candidate-status" class="form-select">
+                                                    <option>Prospecto</option>
+                                                    <option>Entrevistando</option>
+                                                    <option>Contratado</option>
+                                                    <option>Rechazado</option>
+                                                </select>
+                                            </div>
                                         </div>
                                         <div class="mb-3">
                                             <label for="candidate-email" class="form-label">Email</label>
@@ -443,7 +833,13 @@
                                             <label for="candidate-portfolio" class="form-label">CV/Portfolio (URL)</label>
                                             <input type="url" id="candidate-portfolio" class="form-control" required>
                                         </div>
-                                        <button type="submit" class="btn btn-primary">Añadir Candidato</button>
+                                        <div class="mb-3">
+                                            <label for="candidate-photo" class="form-label">URL Foto (Opcional)</label>
+                                            <input type="url" id="candidate-photo" class="form-control" placeholder="https://i.pravatar.cc/150?u=...">
+                                        </div>
+                                        <button type="submit" class="btn btn-primary w-100">
+                                            <i class="bi bi-person-plus-fill me-2"></i>Añadir Candidato
+                                        </button>
                                     </form>
                                 </div>
                             </div>
@@ -465,31 +861,50 @@
             },
 
             renderCandidateList(candidates) {
-                return candidates.map(c => `
-                    <li class="list-group-item">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <h5 class="mb-1">${c.name}</h5>
-                                <p class="mb-1">${c.seniority} - ${c.email}</p>
+                return candidates.map(c => {
+                    let statusClass = 'bg-secondary';
+                    if (c.status === 'Contratado') statusClass = 'bg-success';
+                    if (c.status === 'Entrevistando') statusClass = 'bg-primary';
+                    if (c.status === 'Rechazado') statusClass = 'bg-danger';
+
+                    return `
+                        <li class="list-group-item bg-transparent">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="d-flex align-items-center">
+                                    <img src="${c.photoUrl || 'https://i.pravatar.cc/150?u='+c.id}" class="candidate-photo me-3" alt="">
+                                    <div>
+                                        <h5 class="mb-1 fw-bold">${c.name}</h5>
+                                        <p class="mb-0 small text-secondary">
+                                            <span class="badge ${statusClass} me-2">${c.status || 'Prospecto'}</span>
+                                            ${c.seniority} • ${c.email}
+                                        </p>
+                                    </div>
+                                </div>
+                                <div>
+                                    <a href="${c.portfolio}" target="_blank" class="btn btn-sm btn-outline-secondary me-1" title="Ver CV">
+                                        <i class="bi bi-file-earmark-person"></i>
+                                    </a>
+                                    <button class="btn btn-sm btn-outline-danger" data-action="delete-candidate" data-id="${c.id}" title="Eliminar">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
                             </div>
-                            <div>
-                                <a href="${c.portfolio}" target="_blank" class="btn btn-sm btn-secondary">🔗 CV</a>
-                                <button class="btn btn-sm btn-danger" data-action="delete-candidate" data-id="${c.id}">🗑️</button>
-                            </div>
-                        </div>
-                    </li>
-                `).join('');
+                        </li>
+                    `;
+                }).join('');
             },
 
             addCandidate() {
                 const name = document.getElementById('candidate-name').value;
                 const seniority = document.getElementById('candidate-seniority').value;
+                const status = document.getElementById('candidate-status').value;
                 const email = document.getElementById('candidate-email').value;
                 const portfolio = document.getElementById('candidate-portfolio').value;
+                const photoUrl = document.getElementById('candidate-photo').value;
 
                 if (name && email && portfolio) {
                     const id = Date.now().toString();
-                    this.data.candidates[id] = { id, name, seniority, email, portfolio };
+                    this.data.candidates[id] = { id, name, seniority, status, email, portfolio, photoUrl };
                     this.saveData();
                     this.renderCandidates();
                 }
@@ -584,28 +999,59 @@
                 this.calculateGlobalScore(evaluation);
 
                 let content = `
-                    <h3>Evaluando a: ${candidate.name} para el perfil de ${profile.name}</h3>
-                    <div class="alert alert-info">
-                        <strong>Score Global: <span id="global-score">${evaluation.globalScore.toFixed(2)}</span></strong>
+                    <div class="d-flex align-items-center mb-4">
+                        <img src="${candidate.photoUrl || 'https://i.pravatar.cc/150?u='+candidate.id}" class="candidate-photo me-3" style="width: 64px; height: 64px;">
+                        <div>
+                            <h3 class="mb-0">Evaluando a: ${candidate.name}</h3>
+                            <p class="text-secondary mb-0">Perfil: ${profile.name}</p>
+                        </div>
                     </div>
-                    ${evaluation.skills.map((skill, index) => `
-                        <div class="card mb-3">
-                            <div class="card-body">
-                                <h5 class="card-title">${skill.name} <span class="badge bg-secondary">Peso: ${skill.weight}</span></h5>
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <label for="score-${index}" class="form-label">Puntuación: ${evaluation.scores[index].score}</label>
-                                        <input type="range" class="form-range" min="1" max="10" id="score-${index}" value="${evaluation.scores[index].score}" data-action="update-score" data-id="${evaluation.id}" data-index="${index}">
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label for="notes-${index}" class="form-label">Notas</label>
-                                        <textarea class="form-control" id="notes-${index}" rows="2" data-action="update-notes" data-id="${evaluation.id}" data-index="${index}">${evaluation.scores[index].notes}</textarea>
+
+                    <div class="card border-primary mb-4">
+                        <div class="card-body d-flex justify-content-between align-items-center">
+                            <h4 class="mb-0">Score Global</h4>
+                            <h2 class="text-primary fw-bold mb-0"><span id="global-score">${evaluation.globalScore.toFixed(2)}</span> / 10</h2>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        ${evaluation.skills.map((skill, index) => `
+                            <div class="col-md-6">
+                                <div class="card mb-3">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between mb-2">
+                                            <h5 class="card-title mb-0">${skill.name}</h5>
+                                            <span class="badge bg-secondary-subtle text-secondary">Peso: ${skill.weight}</span>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="score-${index}" class="form-label d-flex justify-content-between">
+                                                <span>Puntuación</span>
+                                                <span class="fw-bold text-primary" id="score-val-${index}">${evaluation.scores[index].score}</span>
+                                            </label>
+                                            <input type="range" class="form-range" min="1" max="10" id="score-${index}" value="${evaluation.scores[index].score}" data-action="update-score" data-id="${evaluation.id}" data-index="${index}">
+                                        </div>
+                                        <div>
+                                            <label for="notes-${index}" class="form-label small">Notas de la skill</label>
+                                            <textarea class="form-control form-control-sm" id="notes-${index}" rows="2" placeholder="Observaciones..." data-action="update-notes" data-id="${evaluation.id}" data-index="${index}">${evaluation.scores[index].notes}</textarea>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
+                        `).join('')}
+                    </div>
+
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title">Recomendación Final</h5>
+                            <textarea class="form-control" id="final-recommendation" rows="4" placeholder="Escriba aquí sus conclusiones finales sobre el candidato..." data-action="update-final-rec" data-id="${evaluation.id}">${evaluation.finalRecommendation || ''}</textarea>
                         </div>
-                    `).join('')}
-                    <button class="btn btn-success" data-action="finish-evaluation" data-id="${evaluation.id}">Finalizar Entrevista</button>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-success btn-lg px-5" data-action="finish-evaluation" data-id="${evaluation.id}">
+                            <i class="bi bi-check-circle-fill me-2"></i>Finalizar y Guardar
+                        </button>
+                    </div>
                 `;
                 container.innerHTML = content;
             },
@@ -613,7 +1059,8 @@
             updateScore(evalId, skillIndex, score) {
                 const evaluation = this.data.evaluations[evalId];
                 evaluation.scores[skillIndex].score = parseInt(score);
-                document.querySelector(`label[for="score-${skillIndex}"]`).textContent = `Puntuación: ${score}`;
+                const scoreVal = document.getElementById(`score-val-${skillIndex}`);
+                if (scoreVal) scoreVal.textContent = score;
                 this.calculateGlobalScore(evaluation);
                 document.getElementById('global-score').textContent = evaluation.globalScore.toFixed(2);
                 this.saveData();
@@ -659,9 +1106,25 @@
                                     </div>
                                 </div>
                                 <div class="col-md-6">
-                                    <h3>Acciones Peligrosas</h3>
-                                    <button class="btn btn-danger" data-action="reset-data">Borrar Todos los Datos (Reset)</button>
-                                    <p class="text-muted mt-2">Esta acción es irreversible y eliminará todos los perfiles, candidatos y evaluaciones.</p>
+                                    <h3>Importar / Exportar Datos</h3>
+                                    <div class="d-grid gap-2 mb-4">
+                                        <button class="btn btn-outline-primary" data-action="export-data">
+                                            <i class="bi bi-download me-2"></i>Exportar Backup (JSON)
+                                        </button>
+                                        <button class="btn btn-outline-secondary" data-action="import-data-trigger">
+                                            <i class="bi bi-upload me-2"></i>Importar Backup (JSON)
+                                        </button>
+                                        <input type="file" id="import-data-file" class="d-none" accept=".json">
+                                        <button class="btn btn-outline-info" data-action="load-demo">
+                                            <i class="bi bi-database-fill-add me-2"></i>Cargar Datos de Prueba
+                                        </button>
+                                    </div>
+
+                                    <h3 class="text-danger">Acciones Peligrosas</h3>
+                                    <button class="btn btn-danger" data-action="reset-data">
+                                        <i class="bi bi-exclamation-triangle me-2"></i>Borrar Todos los Datos (Reset)
+                                    </button>
+                                    <p class="text-muted mt-2 small">Esta acción es irreversible y eliminará todos los perfiles, candidatos y evaluaciones.</p>
                                 </div>
                             </div>
                         </div>
@@ -723,6 +1186,9 @@
                 const profileFilter = document.getElementById('analytics-profile-filter') ? document.getElementById('analytics-profile-filter').value : 'all';
 
                 let evaluations = Object.entries(this.data.evaluations).filter(([id, e]) => e.status === 'Evaluado');
+
+                // Filter out evaluations where candidate or profile no longer exists
+                evaluations = evaluations.filter(([id, e]) => this.data.candidates[e.candidateId] && this.data.profiles[e.profileId]);
 
                 if (profileFilter !== 'all') {
                     evaluations = evaluations.filter(([id, e]) => e.profileId === profileFilter);
@@ -867,7 +1333,11 @@
         document.addEventListener('DOMContentLoaded', () => {
             window.app = new TalentScoutApp();
             app.bindEvents();
-            app.renderProfiles();
+            if (typeof app.renderDashboard === 'function') {
+                app.renderDashboard();
+            } else {
+                app.renderProfiles();
+            }
         });
     </script>
 </body>
