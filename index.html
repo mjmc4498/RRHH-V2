@@ -3,872 +3,166 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TalentScout Enterprise</title>
+    <title>TalentScout Enterprise - Advanced ATS</title>
+    <!-- External Dependencies -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body {
-            background-color: #f8f9fa;
-        }
-        .nav-tabs .nav-link {
-            color: #495057;
-        }
-        .nav-tabs .nav-link.active {
-            color: #000;
-            background-color: #fff;
-            border-color: #dee2e6 #dee2e6 #fff;
-        }
-        .card {
-            border: none;
-            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
-        }
-    </style>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Application Styles -->
+    <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
-    <div class="container mt-4">
-        <div class="d-flex align-items-center mb-4">
-            <h1 class="me-3">TalentScout Enterprise</h1>
-            <span class="badge bg-primary">v1.0</span>
+    <aside id="sidebar">
+        <div class="p-4 d-flex flex-column h-100">
+            <div class="d-flex align-items-center mb-5 ps-3">
+                <i class="bi bi-rocket-takeoff-fill fs-2 me-2 text-primary"></i>
+                <h4 class="mb-0 fw-bold">TalentScout</h4>
+            </div>
+
+            <ul class="nav nav-pills flex-column mb-auto" id="mainTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="dashboard-tab" data-bs-toggle="tab" data-bs-target="#dashboard" type="button" role="tab">
+                        <i class="bi bi-grid-1x2"></i> <span>Dashboard</span>
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="pipeline-tab" data-bs-toggle="tab" data-bs-target="#pipeline" type="button" role="tab">
+                        <i class="bi bi-kanban"></i> <span>Pipeline</span>
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="profiles-tab" data-bs-toggle="tab" data-bs-target="#profiles" type="button" role="tab">
+                        <i class="bi bi-person-badge"></i> <span>Perfiles</span>
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="vacancies-tab" data-bs-toggle="tab" data-bs-target="#vacancies" type="button" role="tab">
+                        <i class="bi bi-briefcase"></i> <span>Vacantes</span>
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="candidates-tab" data-bs-toggle="tab" data-bs-target="#candidates" type="button" role="tab">
+                        <i class="bi bi-people"></i> <span>Candidatos</span>
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="evaluation-tab" data-bs-toggle="tab" data-bs-target="#evaluation" type="button" role="tab">
+                        <i class="bi bi-clipboard-check"></i> <span>Evaluación</span>
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="analytics-tab" data-bs-toggle="tab" data-bs-target="#analytics" type="button" role="tab">
+                        <i class="bi bi-bar-chart-steps"></i> <span>Analytics</span>
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="settings-tab" data-bs-toggle="tab" data-bs-target="#settings" type="button" role="tab">
+                        <i class="bi bi-sliders2"></i> <span>Configuración</span>
+                    </button>
+                </li>
+            </ul>
+
+            <div class="mt-auto pt-3 border-top border-secondary-subtle mx-3">
+                <div class="mb-4">
+                    <label class="small text-secondary fw-bold mb-2">MODO ACCESO</label>
+                    <select class="form-select form-select-sm border-0 bg-light" data-action="switch-role">
+                        <option value="Admin">Administrador</option>
+                        <option value="Recruiter">Reclutador</option>
+                        <option value="Interviewer">Entrevistador</option>
+                    </select>
+                </div>
+                <div class="d-grid gap-2 mb-4">
+                    <button class="btn btn-primary btn-sm rounded-pill py-2" data-action="toggle-portal">
+                        <i class="bi bi-box-arrow-up-right me-2"></i> Portal Candidato
+                    </button>
+                </div>
+                <div class="d-flex align-items-center justify-content-between pb-3">
+                    <span class="small text-secondary">v4.0 Enterprise</span>
+                    <i class="bi bi-moon-stars-fill dark-mode-toggle" id="darkModeToggle"></i>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <main id="main-content">
+        <div id="candidate-portal" class="d-none">
+            <!-- Portal dynamic content -->
         </div>
 
-        <ul class="nav nav-tabs" id="mainTabs" role="tablist">
-            <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="profiles-tab" data-bs-toggle="tab" data-bs-target="#profiles" type="button" role="tab" aria-controls="profiles" aria-selected="true">📂 Gestión de Perfiles</button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="candidates-tab" data-bs-toggle="tab" data-bs-target="#candidates" type="button" role="tab" aria-controls="candidates" aria-selected="false">👥 Base de Candidatos</button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="evaluation-tab" data-bs-toggle="tab" data-bs-target="#evaluation" type="button" role="tab" aria-controls="evaluation" aria-selected="false">📝 Sala de Evaluación</button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="analytics-tab" data-bs-toggle="tab" data-bs-target="#analytics" type="button" role="tab" aria-controls="analytics" aria-selected="false">📊 Analytics & Comparación</button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="settings-tab" data-bs-toggle="tab" data-bs-target="#settings" type="button" role="tab" aria-controls="settings" aria-selected="false">⚙️ Configuración Global</button>
-            </li>
-        </ul>
+        <div id="recruiter-app">
+            <header class="d-flex justify-content-between align-items-center mb-5">
+                <h1 id="page-title" class="h2 fw-bold text-dark mb-0">Dashboard</h1>
+                <div id="header-actions" class="d-flex align-items-center">
+                    <span class="badge bg-primary-subtle text-primary px-3 py-2 rounded-pill">Suscripción Enterprise</span>
+                </div>
+            </header>
 
-        <div class="tab-content" id="mainTabsContent">
-            <!-- Módulo 1: Gestión de Perfiles -->
-            <div class="tab-pane fade show active" id="profiles" role="tabpanel" aria-labelledby="profiles-tab">
-                <!-- Profile content will be dynamically rendered here -->
-            </div>
-
-            <!-- Módulo 2: Base de Candidatos -->
-            <div class="tab-pane fade" id="candidates" role="tabpanel" aria-labelledby="candidates-tab">
-                <!-- Candidates content will be dynamically rendered here -->
-            </div>
-
-            <!-- Módulo 3: Sala de Evaluación -->
-            <div class="tab-pane fade" id="evaluation" role="tabpanel" aria-labelledby="evaluation-tab">
-                <!-- Evaluation content will be dynamically rendered here -->
-            </div>
-
-            <!-- Módulo 4: Analytics & Comparación -->
-            <div class="tab-pane fade" id="analytics" role="tabpanel" aria-labelledby="analytics-tab">
-                <!-- Analytics content will be dynamically rendered here -->
-            </div>
-
-            <!-- Módulo 5: Configuración Global -->
-            <div class="tab-pane fade" id="settings" role="tabpanel" aria-labelledby="settings-tab">
-                <!-- Settings content will be dynamically rendered here -->
+            <div class="tab-content" id="mainTabsContent">
+                <div class="tab-pane fade show active" id="dashboard" role="tabpanel"></div>
+                <div class="tab-pane fade" id="pipeline" role="tabpanel"></div>
+                <div class="tab-pane fade" id="profiles" role="tabpanel"></div>
+                <div class="tab-pane fade" id="vacancies" role="tabpanel"></div>
+                <div class="tab-pane fade" id="candidates" role="tabpanel"></div>
+                <div class="tab-pane fade" id="evaluation" role="tabpanel"></div>
+                <div class="tab-pane fade" id="analytics" role="tabpanel"></div>
+                <div class="tab-pane fade" id="settings" role="tabpanel"></div>
             </div>
         </div>
-    </div>
+    </main>
 
-    <div class="modal fade" id="formModal" tabindex="-1" aria-labelledby="formModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="formModalLabel"></h5>
+    <!-- Global Modals -->
+    <div class="modal fade" id="formModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold" id="formModalLabel"></h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body" id="formModalBody">
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="button" class="btn btn-primary" id="formModalSave">Guardar</button>
+                <div class="modal-body py-4" id="formModalBody"></div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary rounded-pill px-4" id="formModalSave">Guardar Cambios</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="confirmModalLabel">Confirmación</h5>
+    <div class="modal fade" id="confirmModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title fw-bold text-danger">Confirmar Acción</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body" id="confirmModalBody">
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="button" class="btn btn-danger" id="confirmModalDelete">Eliminar</button>
+                <div class="modal-body" id="confirmModalBody"></div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-danger rounded-pill px-4" id="confirmModalDelete">Eliminar Permanentemente</button>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Notifications -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-4">
+        <div id="liveToast" class="toast border-0 shadow-lg" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header border-0 bg-transparent">
+                <i class="bi me-2 fs-5"></i>
+                <strong class="me-auto">TalentScout Cloud</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body pt-0 pb-3" id="toastMessage"></div>
+        </div>
+    </div>
+
+    <!-- Core Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-        // Main App Logic will go here
-        class TalentScoutApp {
-            constructor() {
-                this.data = {
-                    profiles: {},
-                    candidates: {},
-                    settings: {
-                        thresholds: {
-                            recommended: 80,
-                            reserved: 60
-                        }
-                    },
-                    evaluations: {}
-                };
-                this.loadData();
-            }
 
-            loadData() {
-                const data = localStorage.getItem('talentScoutData');
-                if (data) {
-                    this.data = JSON.parse(data);
-                } else {
-                    this.initDefaultData();
-                }
-            }
-
-            saveData() {
-                localStorage.setItem('talentScoutData', JSON.stringify(this.data));
-            }
-
-            initDefaultData() {
-                this.data.profiles = {
-                    '1': { id: '1', name: 'Desarrollador Full Stack', skills: [
-                        { name: 'React', category: 'Hard Skill', weight: 5 },
-                        { name: 'Node.js', category: 'Hard Skill', weight: 5 },
-                        { name: 'Inglés', category: 'Soft Skill', weight: 3 },
-                        { name: 'Comunicación', category: 'Soft Skill', weight: 4 }
-                    ]}
-                };
-                this.data.candidates = {
-                    '1': { id: '1', name: 'Juan Perez', seniority: 'Senior', email: 'juan.perez@example.com', portfolio: 'https://example.com' },
-                    '2': { id: '2', name: 'Maria Garcia', seniority: 'Semi-Senior', email: 'maria.garcia@example.com', portfolio: 'https://example.com' }
-                };
-                this.data.evaluations = {
-                    '1': {
-                        candidateId: '1',
-                        profileId: '1',
-                        status: 'Evaluado',
-                        scores: [
-                            { name: 'React', score: 9, notes: 'Excelente dominio' },
-                            { name: 'Node.js', score: 8, notes: 'Muy bueno' },
-                            { name: 'Inglés', score: 7, notes: 'Bueno' },
-                            { name: 'Comunicación', score: 8, notes: 'Claro y conciso' }
-                        ],
-                        globalScore: 8.12
-                    },
-                    '2': {
-                        candidateId: '2',
-                        profileId: '1',
-                        status: 'Evaluado',
-                        scores: [
-                            { name: 'React', score: 7, notes: 'Bueno' },
-                            { name: 'Node.js', score: 6, notes: 'Aceptable' },
-                            { name: 'Inglés', score: 8, notes: 'Fluido' },
-                            { name: 'Comunicación', score: 9, notes: 'Excelente comunicadora' }
-                        ],
-                        globalScore: 7.29
-                    }
-                };
-                this.saveData();
-            }
-        }
-
-        // Extend TalentScoutApp with all module methods
-        Object.assign(TalentScoutApp.prototype, {
-            bindEvents() {
-                document.getElementById('mainTabsContent').addEventListener('click', (e) => {
-                    if (e.target.matches('[data-action="edit-profile"]')) {
-                        this.editProfile(e.target.dataset.id);
-                    }
-                    if (e.target.matches('[data-action="delete-profile"]')) {
-                        this.deleteProfile(e.target.dataset.id);
-                    }
-                    if (e.target.matches('[data-action="create-profile"]')) {
-                        this.createProfile();
-                    }
-                    if (e.target.matches('[data-action="add-skill"]')) {
-                        this.addSkill(e.target.dataset.id);
-                    }
-                    if (e.target.matches('[data-action="delete-skill"]')) {
-                        this.deleteSkill(e.target.dataset.id, e.target.dataset.index);
-                    }
-                    if (e.target.matches('[data-action="delete-candidate"]')) {
-                        this.deleteCandidate(e.target.dataset.id);
-                    }
-                    if (e.target.matches('[data-action="start-evaluation"]')) {
-                        this.startEvaluation();
-                    }
-                    if (e.target.matches('[data-action="finish-evaluation"]')) {
-                        this.finishEvaluation(e.target.dataset.id);
-                    }
-                    if (e.target.matches('[data-action="reset-data"]')) {
-                        this.resetData();
-                    }
-                });
-
-                document.getElementById('mainTabsContent').addEventListener('change', (e) => {
-                    if (e.target.matches('[data-action="update-profile-name"]')) {
-                        this.updateProfileName(e.target.dataset.id, e.target.value);
-                    } else if (e.target.matches('[data-action="update-score"]')) {
-                        this.updateScore(e.target.dataset.id, e.target.dataset.index, e.target.value);
-                    } else if (e.target.matches('[data-action="update-notes"]')) {
-                        this.updateNotes(e.target.dataset.id, e.target.dataset.index, e.target.value);
-                    } else if (e.target.matches('#candidate-search')) {
-                        const searchTerm = e.target.value.toLowerCase();
-                        const filteredCandidates = Object.values(this.data.candidates).filter(c => c.name.toLowerCase().includes(searchTerm));
-                        document.getElementById('candidate-list').innerHTML = this.renderCandidateList(filteredCandidates);
-                    } else if (e.target.matches('#analytics-profile-filter')) {
-                        this.renderAnalyticsTable();
-                    } else if (e.target.matches('input[name="compare-candidate"]')) {
-                        this.updateRadarChart();
-                    } else if (e.target.matches('[data-action="update-thresholds"]')) {
-                        this.updateThresholds();
-                    }
-                });
-
-                document.getElementById('mainTabsContent').addEventListener('submit', (e) => {
-                    if (e.target.matches('#candidate-form')) {
-                        e.preventDefault();
-                        this.addCandidate();
-                    }
-                });
-
-                document.getElementById('candidates-tab').addEventListener('shown.bs.tab', () => this.renderCandidates());
-                document.getElementById('evaluation-tab').addEventListener('shown.bs.tab', () => this.renderEvaluation());
-                document.getElementById('analytics-tab').addEventListener('shown.bs.tab', () => this.renderAnalytics());
-                document.getElementById('settings-tab').addEventListener('shown.bs.tab', () => this.renderSettings());
-            },
-
-            renderProfiles() {
-                const container = document.getElementById('profiles');
-                const profiles = Object.values(this.data.profiles);
-
-                let content = `
-                    <div class="row mt-3">
-                        <div class="col-md-4">
-                            <div class="card">
-                                <div class="card-body">
-                                    <h2 class="card-title">Perfiles</h2>
-                                    <ul class="list-group">
-                                        ${profiles.map(p => `
-                                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                                ${p.name}
-                                                <div>
-                                                    <button class="btn btn-sm btn-primary" data-action="edit-profile" data-id="${p.id}">✏️</button>
-                                                    <button class="btn btn-sm btn-danger" data-action="delete-profile" data-id="${p.id}">🗑️</button>
-                                                </div>
-                                            </li>
-                                        `).join('')}
-                                    </ul>
-                                    <button class="btn btn-primary mt-3" data-action="create-profile">Nuevo Perfil</button>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-8" id="profile-details">
-                            <!-- Profile details will be rendered here -->
-                        </div>
-                    </div>
-                `;
-                container.innerHTML = content;
-            },
-
-            createProfile() {
-                const formModal = new bootstrap.Modal(document.getElementById('formModal'));
-                document.getElementById('formModalLabel').innerText = 'Nuevo Perfil';
-                document.getElementById('formModalBody').innerHTML = `
-                    <div class="mb-3">
-                        <label for="new-profile-name" class="form-label">Nombre del Perfil</label>
-                        <input type="text" id="new-profile-name" class="form-control">
-                    </div>
-                `;
-                document.getElementById('formModalSave').onclick = () => {
-                    const name = document.getElementById('new-profile-name').value;
-                    if (name) {
-                        const id = Date.now().toString();
-                        this.data.profiles[id] = { id, name, skills: [] };
-                        this.saveData();
-                        this.renderProfiles();
-                        this.editProfile(id);
-                        formModal.hide();
-                    }
-                };
-                formModal.show();
-            },
-
-            editProfile(id) {
-                const profile = this.data.profiles[id];
-                const container = document.getElementById('profile-details');
-                let content = `
-                    <div class="card">
-                        <div class="card-body">
-                            <h2 class="card-title">Editando: ${profile.name}</h2>
-                            <div class="mb-3">
-                                <label for="profile-name" class="form-label">Nombre del Perfil</label>
-                                <input type="text" class="form-control" id="profile-name" value="${profile.name}" data-action="update-profile-name" data-id="${id}">
-                            </div>
-                            <hr>
-                            <h3>Skills</h3>
-                            <ul class="list-group" id="skill-list">
-                                ${profile.skills.map((skill, index) => `
-                                    <li class="list-group-item">
-                                        <div class="row align-items-center">
-                                            <div class="col-md-3">${skill.name}</div>
-                                            <div class="col-md-3"><span class="badge bg-secondary">${skill.category}</span></div>
-                                            <div class="col-md-3">Peso: ${skill.weight}</div>
-                                            <div class="col-md-3 text-end">
-                                                <button class="btn btn-sm btn-danger" data-action="delete-skill" data-id="${id}" data-index="${index}">🗑️</button>
-                                            </div>
-                                        </div>
-                                    </li>
-                                `).join('')}
-                            </ul>
-                            <div class="card mt-3">
-                                <div class="card-body">
-                                    <h4 class="card-title">Añadir Skill</h4>
-                                    <div class="row">
-                                        <div class="col-md-4">
-                                            <input type="text" id="skill-name" class="form-control" placeholder="Nombre Skill">
-                                        </div>
-                                        <div class="col-md-3">
-                                            <select id="skill-category" class="form-select">
-                                                <option>Hard Skill</option>
-                                                <option>Soft Skill</option>
-                                            </select>
-                                        </div>
-                                        <div class="col-md-3">
-                                            <select id="skill-weight" class="form-select">
-                                                <option>1</option>
-                                                <option>2</option>
-                                                <option>3</option>
-                                                <option>4</option>
-                                                <option>5</option>
-                                            </select>
-                                        </div>
-                                        <div class="col-md-2">
-                                            <button class="btn btn-success w-100" data-action="add-skill" data-id="${id}">Añadir</button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                container.innerHTML = content;
-            },
-
-            updateProfileName(id, newName) {
-                this.data.profiles[id].name = newName;
-                this.saveData();
-                this.renderProfiles();
-                this.editProfile(id);
-            },
-
-            addSkill(profileId) {
-                const name = document.getElementById('skill-name').value;
-                const category = document.getElementById('skill-category').value;
-                const weight = parseInt(document.getElementById('skill-weight').value);
-                if (name) {
-                    this.data.profiles[profileId].skills.push({ name, category, weight });
-                    this.saveData();
-                    this.editProfile(profileId);
-                }
-            },
-
-            deleteSkill(profileId, skillIndex) {
-                this.data.profiles[profileId].skills.splice(skillIndex, 1);
-                this.saveData();
-                this.editProfile(profileId);
-            },
-
-            deleteProfile(id) {
-                const isUsed = Object.values(this.data.evaluations).some(e => e.profileId === id);
-                const confirmModal = new bootstrap.Modal(document.getElementById('confirmModal'));
-                const confirmModalBody = document.getElementById('confirmModalBody');
-
-                let message = '¿Está seguro que desea eliminar este perfil?';
-                if (isUsed) {
-                    message = 'Este perfil está siendo utilizado en evaluaciones. ¿Está seguro que desea eliminarlo?'
-                }
-
-                confirmModalBody.innerText = message;
-
-                document.getElementById('confirmModalDelete').onclick = () => {
-                    delete this.data.profiles[id];
-                    this.saveData();
-                    this.renderProfiles();
-                    document.getElementById('profile-details').innerHTML = '';
-                    confirmModal.hide();
-                };
-                confirmModal.show();
-            },
-            renderCandidates() {
-                const container = document.getElementById('candidates');
-                const candidates = Object.values(this.data.candidates);
-                let content = `
-                    <div class="row mt-3">
-                        <div class="col-md-4">
-                            <div class="card">
-                                <div class="card-body">
-                                    <h2 class="card-title">Nuevo Candidato</h2>
-                                    <form id="candidate-form">
-                                        <div class="mb-3">
-                                            <label for="candidate-name" class="form-label">Nombre Completo</label>
-                                            <input type="text" id="candidate-name" class="form-control" required>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label for="candidate-seniority" class="form-label">Seniority</label>
-                                            <select id="candidate-seniority" class="form-select">
-                                                <option>Junior</option>
-                                                <option>Semi-Senior</option>
-                                                <option>Senior</option>
-                                            </select>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label for="candidate-email" class="form-label">Email</label>
-                                            <input type="email" id="candidate-email" class="form-control" required>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label for="candidate-portfolio" class="form-label">CV/Portfolio (URL)</label>
-                                            <input type="url" id="candidate-portfolio" class="form-control" required>
-                                        </div>
-                                        <button type="submit" class="btn btn-primary">Añadir Candidato</button>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-8">
-                            <div class="card">
-                                <div class="card-body">
-                                    <h2 class="card-title">Lista de Candidatos</h2>
-                                    <input type="text" id="candidate-search" class="form-control mb-3" placeholder="Buscar candidato...">
-                                    <ul class="list-group" id="candidate-list">
-                                        ${this.renderCandidateList(candidates)}
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                container.innerHTML = content;
-            },
-
-            renderCandidateList(candidates) {
-                return candidates.map(c => `
-                    <li class="list-group-item">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <h5 class="mb-1">${c.name}</h5>
-                                <p class="mb-1">${c.seniority} - ${c.email}</p>
-                            </div>
-                            <div>
-                                <a href="${c.portfolio}" target="_blank" class="btn btn-sm btn-secondary">🔗 CV</a>
-                                <button class="btn btn-sm btn-danger" data-action="delete-candidate" data-id="${c.id}">🗑️</button>
-                            </div>
-                        </div>
-                    </li>
-                `).join('');
-            },
-
-            addCandidate() {
-                const name = document.getElementById('candidate-name').value;
-                const seniority = document.getElementById('candidate-seniority').value;
-                const email = document.getElementById('candidate-email').value;
-                const portfolio = document.getElementById('candidate-portfolio').value;
-
-                if (name && email && portfolio) {
-                    const id = Date.now().toString();
-                    this.data.candidates[id] = { id, name, seniority, email, portfolio };
-                    this.saveData();
-                    this.renderCandidates();
-                }
-            },
-
-            deleteCandidate(id) {
-                const confirmModal = new bootstrap.Modal(document.getElementById('confirmModal'));
-                document.getElementById('confirmModalBody').innerText = '¿Está seguro que desea eliminar este candidato? Se eliminarán también sus evaluaciones.';
-                document.getElementById('confirmModalDelete').onclick = () => {
-                    delete this.data.candidates[id];
-                    // Also delete evaluations associated with this candidate
-                    Object.keys(this.data.evaluations).forEach(evalId => {
-                        if (this.data.evaluations[evalId].candidateId === id) {
-                            delete this.data.evaluations[evalId];
-                        }
-                    });
-                    this.saveData();
-                    this.renderCandidates();
-                    confirmModal.hide();
-                };
-                confirmModal.show();
-            },
-            renderEvaluation() {
-                const container = document.getElementById('evaluation');
-                let content = `
-                    <div class="card mt-3">
-                        <div class="card-body">
-                            <h2 class="card-title">Iniciar Evaluación</h2>
-                            <div class="row">
-                                <div class="col-md-5">
-                                    <label for="eval-profile-select" class="form-label">Seleccionar Perfil</label>
-                                    <select id="eval-profile-select" class="form-select">
-                                        <option selected disabled>Elija un perfil...</option>
-                                        ${Object.values(this.data.profiles).map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
-                                    </select>
-                                </div>
-                                <div class="col-md-5">
-                                    <label for="eval-candidate-select" class="form-label">Seleccionar Candidato</label>
-                                    <select id="eval-candidate-select" class="form-select">
-                                        <option selected disabled>Elija un candidato...</option>
-                                        ${Object.values(this.data.candidates).map(c => `<option value="${c.id}">${c.name}</option>`).join('')}
-                                    </select>
-                                </div>
-                                <div class="col-md-2 d-flex align-items-end">
-                                    <button class="btn btn-primary w-100" data-action="start-evaluation">Evaluar</button>
-                                </div>
-                            </div>
-                            <hr>
-                            <div id="evaluation-form-container"></div>
-                        </div>
-                    </div>
-                `;
-                container.innerHTML = content;
-            },
-
-            startEvaluation() {
-                const profileId = document.getElementById('eval-profile-select').value;
-                const candidateId = document.getElementById('eval-candidate-select').value;
-
-                if (!profileId || !candidateId) {
-                    alert("Por favor, seleccione un perfil y un candidato.");
-                    return;
-                }
-
-                let evaluation = Object.values(this.data.evaluations).find(e => e.candidateId === candidateId && e.profileId === profileId);
-
-                if (!evaluation) {
-                    const profile = this.data.profiles[profileId];
-                    const id = Date.now().toString();
-                    evaluation = {
-                        id,
-                        candidateId,
-                        profileId,
-                        status: 'En Progreso',
-                        // --- SNAPSHOT LOGIC ---
-                        skills: JSON.parse(JSON.stringify(profile.skills)), // Deep copy of skills
-                        scores: profile.skills.map(skill => ({ name: skill.name, score: 5, notes: '' })),
-                        globalScore: 0
-                    };
-                    this.data.evaluations[id] = evaluation;
-                    this.saveData();
-                }
-
-                this.renderEvaluationForm(evaluation);
-            },
-
-            renderEvaluationForm(evaluation) {
-                const container = document.getElementById('evaluation-form-container');
-                const candidate = this.data.candidates[evaluation.candidateId];
-                const profile = this.data.profiles[evaluation.profileId];
-
-                this.calculateGlobalScore(evaluation);
-
-                let content = `
-                    <h3>Evaluando a: ${candidate.name} para el perfil de ${profile.name}</h3>
-                    <div class="alert alert-info">
-                        <strong>Score Global: <span id="global-score">${evaluation.globalScore.toFixed(2)}</span></strong>
-                    </div>
-                    ${evaluation.skills.map((skill, index) => `
-                        <div class="card mb-3">
-                            <div class="card-body">
-                                <h5 class="card-title">${skill.name} <span class="badge bg-secondary">Peso: ${skill.weight}</span></h5>
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <label for="score-${index}" class="form-label">Puntuación: ${evaluation.scores[index].score}</label>
-                                        <input type="range" class="form-range" min="1" max="10" id="score-${index}" value="${evaluation.scores[index].score}" data-action="update-score" data-id="${evaluation.id}" data-index="${index}">
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label for="notes-${index}" class="form-label">Notas</label>
-                                        <textarea class="form-control" id="notes-${index}" rows="2" data-action="update-notes" data-id="${evaluation.id}" data-index="${index}">${evaluation.scores[index].notes}</textarea>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    `).join('')}
-                    <button class="btn btn-success" data-action="finish-evaluation" data-id="${evaluation.id}">Finalizar Entrevista</button>
-                `;
-                container.innerHTML = content;
-            },
-
-            updateScore(evalId, skillIndex, score) {
-                const evaluation = this.data.evaluations[evalId];
-                evaluation.scores[skillIndex].score = parseInt(score);
-                document.querySelector(`label[for="score-${skillIndex}"]`).textContent = `Puntuación: ${score}`;
-                this.calculateGlobalScore(evaluation);
-                document.getElementById('global-score').textContent = evaluation.globalScore.toFixed(2);
-                this.saveData();
-            },
-
-            updateNotes(evalId, skillIndex, notes) {
-                this.data.evaluations[evalId].scores[skillIndex].notes = notes;
-                this.saveData();
-            },
-
-            calculateGlobalScore(evaluation) {
-                let totalScore = 0;
-                let totalWeight = 0;
-                evaluation.skills.forEach((skill, index) => {
-                    totalScore += evaluation.scores[index].score * skill.weight;
-                    totalWeight += skill.weight;
-                });
-                evaluation.globalScore = totalWeight > 0 ? totalScore / totalWeight : 0;
-            },
-
-            finishEvaluation(evalId) {
-                this.data.evaluations[evalId].status = 'Evaluado';
-                this.saveData();
-                alert("Entrevista finalizada y guardada.");
-                this.renderEvaluation();
-            },
-            renderSettings() {
-                const container = document.getElementById('settings');
-                const settings = this.data.settings;
-                let content = `
-                    <div class="card mt-3">
-                        <div class="card-body">
-                            <h2 class="card-title">Configuración Global</h2>
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <label for="threshold-recommended" class="form-label">Contratación Recomendada (%)</label>
-                                        <input type="number" id="threshold-recommended" class="form-control" value="${settings.thresholds.recommended}" data-action="update-thresholds">
-                                    </div>
-                                    <div class="mb-3">
-                                        <label for="threshold-reserved" class="form-label">Considerar con Reservas (%)</label>
-                                        <input type="number" id="threshold-reserved" class="form-control" value="${settings.thresholds.reserved}" data-action="update-thresholds">
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <h3>Acciones Peligrosas</h3>
-                                    <button class="btn btn-danger" data-action="reset-data">Borrar Todos los Datos (Reset)</button>
-                                    <p class="text-muted mt-2">Esta acción es irreversible y eliminará todos los perfiles, candidatos y evaluaciones.</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                container.innerHTML = content;
-            },
-
-            updateThresholds() {
-                this.data.settings.thresholds.recommended = parseInt(document.getElementById('threshold-recommended').value);
-                this.data.settings.thresholds.reserved = parseInt(document.getElementById('threshold-reserved').value);
-                this.saveData();
-                alert("Umbrales actualizados.");
-            },
-
-            resetData() {
-                const confirmModal = new bootstrap.Modal(document.getElementById('confirmModal'));
-                document.getElementById('confirmModalBody').innerText = '¿Está ABSOLUTAMENTE SEGURO de que desea borrar todos los datos? Esta acción no se puede deshacer.';
-                document.getElementById('confirmModalDelete').onclick = () => {
-                    localStorage.removeItem('talentScoutData');
-                    location.reload();
-                };
-                confirmModal.show();
-            },
-
-            renderAnalytics() {
-                const container = document.getElementById('analytics');
-                const profiles = Object.values(this.data.profiles);
-                let content = `
-                    <div class="card mt-3">
-                        <div class="card-body">
-                            <h2 class="card-title">Ranking de Candidatos</h2>
-                            <div class="mb-3">
-                                <label for="analytics-profile-filter" class="form-label">Filtrar por Perfil</label>
-                                <select id="analytics-profile-filter" class="form-select">
-                                    <option value="all">Todos los Perfiles</option>
-                                    ${profiles.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
-                                </select>
-                            </div>
-                            <div id="analytics-table-container"></div>
-                        </div>
-                    </div>
-                    <div class="card mt-3">
-                        <div class="card-body">
-                            <h2 class="card-title">Comparador Visual</h2>
-                            <div id="analytics-chart-container">
-                                <canvas id="radarChart"></canvas>
-                            </div>
-                            <p class="text-muted mt-2">Seleccione 2 o 3 candidatos de la tabla para comparar sus habilidades.</p>
-                        </div>
-                    </div>
-                `;
-                container.innerHTML = content;
-                this.renderAnalyticsTable();
-            },
-
-            renderAnalyticsTable() {
-                const container = document.getElementById('analytics-table-container');
-                const profileFilter = document.getElementById('analytics-profile-filter') ? document.getElementById('analytics-profile-filter').value : 'all';
-
-                let evaluations = Object.entries(this.data.evaluations).filter(([id, e]) => e.status === 'Evaluado');
-
-                if (profileFilter !== 'all') {
-                    evaluations = evaluations.filter(([id, e]) => e.profileId === profileFilter);
-                }
-
-                evaluations.sort(([idA, a], [idB, b]) => b.globalScore - a.globalScore);
-
-                let content = `
-                    <table class="table table-hover">
-                        <thead>
-                            <tr>
-                                <th></th>
-                                <th>Candidato</th>
-                                <th>Perfil</th>
-                                <th>Score Global</th>
-                                <th>Feedback Final</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${evaluations.map(([id, e]) => {
-                                const candidate = this.data.candidates[e.candidateId];
-                                const profile = this.data.profiles[e.profileId];
-                                const scorePercentage = e.globalScore * 10;
-                                let feedback = '';
-                                let feedbackClass = '';
-
-                                if (scorePercentage >= this.data.settings.thresholds.recommended) {
-                                    feedback = 'Contratación Altamente Recomendada';
-                                    feedbackClass = 'bg-success text-white';
-                                } else if (scorePercentage >= this.data.settings.thresholds.reserved) {
-                                    feedback = 'Considerar con Reservas';
-                                    feedbackClass = 'bg-warning text-dark';
-                                } else {
-                                    feedback = 'No cumple el perfil';
-                                    feedbackClass = 'bg-danger text-white';
-                                }
-
-                                return `
-                                    <tr>
-                                        <td><input type="checkbox" class="form-check-input" name="compare-candidate" value="${id}"></td>
-                                        <td>${candidate.name}</td>
-                                        <td>${profile.name}</td>
-                                        <td><strong>${e.globalScore.toFixed(2)}</strong></td>
-                                        <td><span class="badge ${feedbackClass}">${feedback}</span></td>
-                                    </tr>
-                                `;
-                            }).join('')}
-                        </tbody>
-                    </table>
-                `;
-                container.innerHTML = content;
-                this.updateRadarChart();
-            },
-
-            updateRadarChart() {
-                const allCheckBoxes = document.querySelectorAll('input[name="compare-candidate"]');
-                const checkedBoxes = document.querySelectorAll('input[name="compare-candidate"]:checked');
-                const evalIds = Array.from(checkedBoxes).map(cb => cb.value);
-
-                if (evalIds.length === 0) {
-                    allCheckBoxes.forEach(cb => cb.disabled = false);
-                    if (this.radarChart) {
-                        this.radarChart.destroy();
-                        this.radarChart = null;
-                    }
-                    return;
-                }
-
-                const firstEvaluation = this.data.evaluations[evalIds[0]];
-                const profileId = firstEvaluation.profileId;
-
-                allCheckBoxes.forEach(cb => {
-                    if (!evalIds.includes(cb.value)) {
-                        const evalutation = this.data.evaluations[cb.value];
-                        if (evalutation.profileId !== profileId) {
-                            cb.disabled = true;
-                        }
-                    }
-                });
-
-                if (evalIds.length < 2 || evalIds.length > 3) {
-                    if (this.radarChart) {
-                        this.radarChart.destroy();
-                        this.radarChart = null;
-                    }
-                    return;
-                }
-
-                const evaluations = evalIds.map(id => this.data.evaluations[id]);
-                const profile = this.data.profiles[profileId];
-                const labels = profile.skills.map(s => s.name);
-
-                const datasets = evaluations.map((e, index) => {
-                    const candidate = this.data.candidates[e.candidateId];
-                    const colors = [
-                        'rgba(54, 162, 235, 0.2)',
-                        'rgba(255, 99, 132, 0.2)',
-                        'rgba(75, 192, 192, 0.2)'
-                    ];
-                    const borderColors = [
-                        'rgb(54, 162, 235)',
-                        'rgb(255, 99, 132)',
-                        'rgb(75, 192, 192)'
-                    ];
-                    return {
-                        label: candidate.name,
-                        data: e.scores.map(s => s.score),
-                        fill: true,
-                        backgroundColor: colors[index],
-                        borderColor: borderColors[index],
-                        pointBackgroundColor: borderColors[index],
-                    };
-                });
-
-                const ctx = document.getElementById('radarChart').getContext('2d');
-                if (this.radarChart) {
-                    this.radarChart.destroy();
-                }
-                this.radarChart = new Chart(ctx, {
-                    type: 'radar',
-                    data: { labels, datasets },
-                    options: {
-                        elements: {
-                            line: {
-                                borderWidth: 3
-                            }
-                        },
-                        scales: {
-                            r: {
-                                angleLines: {
-                                    display: false
-                                },
-                                suggestedMin: 0,
-                                suggestedMax: 10
-                            }
-                        }
-                    }
-                });
-            }
-        });
-
-        document.addEventListener('DOMContentLoaded', () => {
-            window.app = new TalentScoutApp();
-            app.bindEvents();
-            app.renderProfiles();
-        });
-    </script>
+    <!-- Application Modules -->
+    <script type="module" src="js/app.js"></script>
 </body>
 </html>
